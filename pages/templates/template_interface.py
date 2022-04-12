@@ -3,6 +3,8 @@ import pandas as pd
 
 
 class FormalTemplateInterface(metaclass=abc.ABCMeta):
+    style: dict = None
+
     @classmethod
     def __subclasshook__(cls, subclass):
         return (hasattr(subclass, 'check_data_validity') and

@@ -18,7 +18,7 @@ def display_page(pathname):
     elif pathname == '/page2':
         return page2.layout
     else:
-        return '404'
+        return page1.layout
 
 
 if __name__ == '__main__':
