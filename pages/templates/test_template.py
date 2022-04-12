@@ -9,7 +9,7 @@ class TestTemplate(FormalTemplateInterface):
         self.imgPreview = 'test_preview.webp'
         self.tags = None
 
-    def check_data_validation(self, df: pd.DataFrame):
+    def check_data_validity(self, df: pd.DataFrame):
         """validate the input dataFrame"""
         pass
 

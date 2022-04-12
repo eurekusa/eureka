@@ -5,8 +5,8 @@ import pandas as pd
 class FormalTemplateInterface(metaclass=abc.ABCMeta):
     @classmethod
     def __subclasshook__(cls, subclass):
-        return (hasattr(subclass, 'check_data_validation') and
-                callable(subclass.check_data_validation) and
+        return (hasattr(subclass, 'check_data_validity') and
+                callable(subclass.check_data_validity) and
                 hasattr(subclass, 'prepare_data') and
                 callable(subclass.prepare_data) and
                 hasattr(subclass, 'build_dashboard') and
@@ -14,7 +14,7 @@ class FormalTemplateInterface(metaclass=abc.ABCMeta):
                 NotImplemented)
 
     @abc.abstractmethod
-    def check_data_validation(self, df: pd.DataFrame):
+    def check_data_validity(self, df: pd.DataFrame):
         """validate the input dataFrame"""
         raise NotImplementedError
 
