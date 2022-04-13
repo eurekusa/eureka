@@ -1,9 +1,9 @@
 from dash import Dash, dcc, html, Input, Output, callback
-from pages import page1, page2
+from pages import page1, page2, Facade
 
 app = Dash(__name__, suppress_callback_exceptions=True)
 server = app.server
-
+facade = Facade()
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
     html.Div(id='page-content')
