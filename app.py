@@ -1,24 +1,15 @@
-from dash import Dash, dcc, html, Input, Output, callback
-from pages import page1, page2, Facade
+from dash import Dash, dcc, html
+from pages import Facade, index
+import dash_bootstrap_components as dbc
 
-app = Dash(__name__, suppress_callback_exceptions=True)
+app = Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP])
 server = app.server
-facade = Facade()
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
     html.Div(id='page-content')
 ])
-
-
-@callback(Output('page-content', 'children'),
-          Input('url', 'pathname'))
-def display_page(pathname):
-    if pathname == '/page1':
-        return page1.layout
-    elif pathname == '/page2':
-        return page2.layout
-    else:
-        return page1.layout
+global facade
+facade = Facade()
 
 
 if __name__ == '__main__':

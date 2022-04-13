@@ -9,10 +9,3 @@ layout = html.Div([
     html.Div(id='page-2-display-value'),
     dcc.Link('Go to Page 1', href='/page2')
 ])
-
-
-@callback(
-    Output('page-2-display-value', 'children'),
-    Input('page-2-dropdown', 'value'))
-def display_value(value):
-    return f'You have selected {value}'
