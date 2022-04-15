@@ -5,14 +5,15 @@ import dash_bootstrap_components as dbc
 import plotly.express as px
 
 
-class TestTemplate(FormalTemplateInterface):
+class TestTemplate2(FormalTemplateInterface):
     def __init__(self):
-        self.name = '<template_unique_name>'
-        self.description = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ' \
-                           'ut labore et dolore magna aliqua. Aliquam id diam maecenas ultricies mi eget. Mi bibendum ' \
-                           'neque egestas congue quisque egestas diam in arcu. Non curabitur gravida arcu ac. '
-        self.imgPreview = 'test_preview.webp'
-        self.tags = ['<tag1>', '<tag2>']
+        self.name = '<template_unique_name2>'
+        self.description = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor ' \
+                           'incididuntut labore et dolore magna aliqua. Aliquam id diam maecenas ultricies mi eget. ' \
+                           'Mi bibendum neque egestas congue quisque egestas diam in arcu. Non curabitur gravida arcu ' \
+                           'ac. '
+        self.imgPreview = 'test2_preview.webp'
+        self.tags = ['marketing', 'operation']
         self.layout = None
 
     def check_data_validity(self, df: pd.DataFrame):
@@ -31,6 +32,6 @@ class TestTemplate(FormalTemplateInterface):
         })
 
         fig = px.bar(df, x="Fruit", y="Amount", color="City", barmode="group")
-        dashboard = dbc.Container([dbc.Row(html.Div(children='''<template_unique_name>''')),
+        dashboard = dbc.Container([dbc.Row(html.Div(children='''<template_unique_name2>''')),
                                    dbc.Row(dcc.Graph(id='example-graph', figure=fig))])
         return dashboard

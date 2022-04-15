@@ -2,6 +2,10 @@
   font-family: PrimaryFont;
   src: url(Myriad_Pro_Black_SemiExtended.otf);
 }
+.main_header
+{
+    color: #118590;
+}
 
 .outlined
 {
@@ -21,4 +25,10 @@
     border-color: #4be3ae;
     color: honeydew;
     box-shadow: 0 0 0 .25rem rgba(75, 227, 174,.5);
+}
+
+.template_card
+{
+    border-color: #4be3ae;
+
 }

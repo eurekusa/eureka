@@ -6,7 +6,9 @@ app = Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=[db
 server = app.server
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
-    html.Div(id='page-content')
+    dcc.Location(id='url2', refresh=True),
+    html.Div(id='page-content'),
+    dcc.Store(id='load_upload_data_interface', storage_type='memory',data=None),
 ])
 global facade
 facade = Facade()
