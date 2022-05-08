@@ -18,9 +18,10 @@ def display_page(pathname):
     elif pathname == '/dashboard':
         if facade.current_template is None:
             return gallery.layout, '/'
-        elif facade.raw_data is None:
-            return import_data.layout, '/upload'
         else:
-            return dashboard.render_template(facade.render_layout()),no_update
+            if facade.raw_data is None:
+                return import_data.layout, '/upload'
+            else:
+                return dashboard.render_template(facade.render_layout()),no_update
     else:
         return '404', no_update

@@ -23,13 +23,13 @@ class Facade(object):
             self.current_layout = None
         self.current_template = self.get_template_by_name(name)
 
-    def check_data_validity(self, df: pd.DataFrame):
-
-        return self.current_template.check_data_validity(df)
+    def check_data_validity(self, values=None):
+        return self.current_template.check_data_validity(self.raw_data, values)
 
     def load_data(self, df: pd.DataFrame):
         self.raw_data = df
-        self.preprocessed_data = self.current_template.prepare_data(df)
+        self.current_template.reset_columns()
+        self.current_template.pipline_index = 0
 
     def render_layout(self):
         if self.current_layout is None:

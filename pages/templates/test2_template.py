@@ -14,6 +14,9 @@ class TestTemplate2(FormalTemplateInterface):
                            'ac. '
         self.imgPreview = 'test2_preview.webp'
         self.tags = ['marketing', 'operation']
+        self.pipline_index = 0
+        self.pipline = []
+        self.clean_data = None
         self.layout = None
 
     def check_data_validity(self, df: pd.DataFrame):
