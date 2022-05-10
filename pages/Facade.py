@@ -26,6 +26,9 @@ class Facade(object):
     def check_data_validity(self, values=None):
         return self.current_template.check_data_validity(self.raw_data, values)
 
+    def pipline_step_back(self):
+        self.current_template.pipline_step_back()
+
     def load_data(self, df: pd.DataFrame):
         self.raw_data = df
         self.current_template.reset_columns()

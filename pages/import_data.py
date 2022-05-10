@@ -2,15 +2,33 @@ import base64
 import io
 
 import pandas as pd
-from dash import dcc, html, Input, State, Output, callback, ALL, MATCH, no_update
-import ast
-
 import dash
-from dash import dcc, html, Input, State, Output, callback, ALL, MATCH, no_update
+from dash import dcc, html, Input, State, Output, callback, ALL
 from app import facade, app
 import dash_bootstrap_components as dbc
 
 ERIKUSA_LOGO = app.get_asset_url('Erikusa_BBG.png')
+
+input_data_toast = dbc.Toast("Your file is empty",
+                             id="input_toast",
+                             header="Positioned toast",
+                             is_open=False,
+                             dismissable=True,
+                             icon="danger",
+                             duration=4000,
+                             # top: 66 positions the toast below the navbar
+                             style={"position": "fixed", "top": 59, "right": 10, "width": 350},
+                             )
+column_checking_toast = dbc.Toast("Your file is empty",
+                                  id="column_toast",
+                                  header="Positioned toast",
+                                  is_open=False,
+                                  dismissable=True,
+                                  icon="danger",
+                                  duration=4000,
+                                  # top: 66 positions the toast below the navbar
+                                  style={"position": "fixed", "top": 66, "right": 10, "width": 350,"z-index":'100'},
+                                  )
 
 navbar = dbc.Navbar(
     dbc.Container(
@@ -52,7 +70,7 @@ upload = dcc.Upload(
         'borderStyle': 'dashed',
         'borderRadius': '5px',
         'textAlign': 'center',
-        'margin': '10px'
+        'margin': '10px',
     },
     # Allow multiple files to be uploaded
     multiple=False
@@ -62,6 +80,7 @@ upload_file_card = [
     dbc.CardHeader(html.H5("Upload document")),
     dbc.CardBody(
         [
+            input_data_toast,
             dcc.Loading(upload,
                         type="default",
                         )
@@ -81,23 +100,26 @@ error_modal = dbc.Modal(
     is_open=False,
 )
 data_validity_modal = dbc.Modal(
-    [
+    [column_checking_toast,
+
         dbc.ModalHeader(dbc.ModalTitle("Data validation"), close_button=True),
-        dcc.Loading(dbc.ModalBody(id="data_validity_Body", children=["Please check data validity"])),
+        dcc.Loading(dbc.ModalBody(id="data_validity_Body",
+                                  children=[dbc.Alert('Oops! Something wrong happened !', color="danger")])),
     ],
     id="data_validity",
     backdrop="static",
     centered=True,
     is_open=False,
-    size="lg"
+    size="lg",
+    style={"z-index": 1}
 )
 layout = html.Div([
     navbar,
     error_modal,
-    data_validity_modal,
+
     dbc.Container(
         [
-            dbc.Row([dbc.Col(dbc.Card(children=upload_file_card)), ], style={"marginTop": 30}),
+            dbc.Row([dbc.Col(dbc.Card(children=upload_file_card)),data_validity_modal ], style={"marginTop": 30}),
         ],
         className="mt-12",
     ),
@@ -107,6 +129,9 @@ layout = html.Div([
 @callback(
     Output("data_validity", "is_open"),
     Output("error-centered", "is_open"),
+    Output("input_toast", "children"),
+    Output("input_toast", "header"),
+    Output("input_toast", "is_open"),
     Input('upload-data', 'contents'),
     State('upload-data', 'filename'),
     State("data_validity", "is_open"),
@@ -116,25 +141,25 @@ def update_document(content, filename, is_open, e_is_open):
     reads the uploaded data file and updates facade raw_data attribute
     """
     if content is None:
-        return dash.no_update, dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
     content_type, content_string = content.split(',')
     decoded = base64.b64decode(content_string)
     try:
         if 'csv' in filename:
-            # Assume that the user uploaded a CSV file
             df = pd.read_csv(io.StringIO(decoded.decode('utf-8')))
-            facade.load_data(df)
-            return not is_open, dash.no_update
         elif 'xls' in filename or 'xlsx' in filename:
-            # Assume that the user uploaded an excel file
             df = pd.read_excel(io.BytesIO(decoded))
-            facade.load_data(df)
-            return not is_open, dash.no_update
-        return dash.no_update, not e_is_open
+        else:
+            return dash.no_update, dash.no_update, html.P('Oops ! Wrong file format.'), 'File format ' \
+                                                                                        'error ', True
+        if df.shape[0] == 0:
+            return dash.no_update, dash.no_update, html.P('Oops ! the uploaded file is empty.'), 'reading data ' \
+                                                                                                 'error ', True
+        facade.load_data(df)
+        return not is_open, dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
     except Exception as e:
-        print(e)
-        return dash.no_update, not e_is_open
+        return dash.no_update, dash.no_update, html.P('Oops ! Something wrong happened: ' + str(e)), 'Error', True
 
 
 @callback(
@@ -145,21 +170,31 @@ def check_data(is_open):
         answer = facade.check_data_validity(values=False)
         if answer[0] == 'ask_user':
             return answer[1]
+        if answer[0] == 'raise_error':
+            facade.pipline_step_back()
+            return answer[1]
     return dash.no_update
+
+
+
 
 
 @callback(
     Output("data_form", "children"),
+    Output("column_toast", "children"),
+    Output("column_toast", "header"),
+    Output("column_toast", "is_open"),
     Input("next_step", "n_clicks"),
     State({'type': 'column_match', 'value': ALL}, 'value')
-    ,prevent_initial_call=True)
+    , prevent_initial_call=True)
 def checks_data(n_clicks, values):
     if any([value is None for value in values]):
-        return dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update
     else:
-
         answer = facade.check_data_validity(values=dash.callback_context.states_list[0])
         if answer[0] == 'ask_user':
-            return answer[1]
-        return dash.no_update
-
+            return answer[1], dash.no_update, dash.no_update, dash.no_update
+        if answer[0] == 'raise_error':
+            facade.pipline_step_back()
+            return [dash.no_update] + list(answer[1:])
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update

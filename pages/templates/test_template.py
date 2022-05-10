@@ -5,6 +5,8 @@ import dash_bootstrap_components as dbc
 import plotly.express as px
 from pandas.api.types import is_numeric_dtype
 from dash import no_update
+from collections import Counter
+
 
 class TestTemplate(FormalTemplateInterface):
     def __init__(self):
@@ -57,6 +59,9 @@ class TestTemplate(FormalTemplateInterface):
         self.pipline_index += 1
         return output
 
+    def pipline_step_back(self):
+        self.pipline_index -= 1
+
     def prepare_data(self, df: pd.DataFrame):
         """Preprocess data for visualization"""
         return df
@@ -108,21 +113,51 @@ class TestTemplate(FormalTemplateInterface):
                     className="mb-3",
                 ))
 
-        form = dcc.Loading(dbc.Container(id='data_form', children=[dbc.Form(children=categorical + numerical + [dbc.Row(
+        form = dcc.Loading(dbc.Container(id='data_form', children=[dbc.Form(children=[html.H5('Select categorical '
+                                                                                              'columns type '
+                                                                                              ':'),
+                                                                                      html.Hr()] + categorical +
+                                                                                     [html.H5('Select sales type (in '
+                                                                                              'value/volume) '
+                                                                                              ':'), html.Hr()] +
+                                                                                     numerical + [dbc.Row(
             dbc.Button("Next", outline=True, color="dark", className="mr-auto", n_clicks=0, id='next_step'),
             className="d-grid gap-2 col-3 mx-auto")])]))
+
+        if len(categorical) == 0:
+            return 'raise_error', dbc.Alert('No categorical columns was found in the data. Please check your input '
+                                            'file !', color="danger"),
+        if len(numerical) == 0:
+            return 'raise_error', dbc.Alert('No Sales columns was found in the data. Please check your input '
+                                            'file !', color="danger")
+
         return 'ask_user', form
 
     def rank_class_sales(self, df, values):
+        columns = [value['value'] for value in values]
+        column_counter = Counter(columns)
+        if column_counter['Country level'] > 1:
+            return 'raise_error', 'You can not select more than one Country level!', 'Input error', True
+        if column_counter['Family level'] > 1:
+            return 'raise_error', 'You can not select more than one Family level!', 'Input error', True
+        if column_counter['Brand level'] > 1:
+            return 'raise_error', 'You can not select more than one Brand level!', 'Input error', True
+        if column_counter['Molecule level'] > 1:
+            return 'raise_error', 'You can not select more than one Molecule level!', 'Input error', True
+        if column_counter['Molecule level'] + column_counter['Country level'] + column_counter['Brand level'] + \
+                column_counter['Molecule level'] == 0:
+            return 'raise_error', 'You can not Discard all categorical columns!', 'Input error', True
+        if column_counter['Sales volume'] + column_counter['Sales value'] == 0:
+            return 'raise_error', 'You can not Discard all sales columns!', 'Input error', True
         for value in values:
             if value['value'] == 'Discard column':
                 continue
             self.match_columns[value['value']](value['id']['value'])
         self.columns_dict['Sales value'].sort()
         self.columns_dict['Sales volume'].sort()
-        dropdowns = []
-        for column in self.columns_dict['Sales value']:
-            dropdowns.append(dbc.Row(
+        value_dropdowns = []
+        for idx, column in enumerate(self.columns_dict['Sales value']):
+            value_dropdowns.append(dbc.Row(
                 [
                     dbc.Label(column, html_for={'type': 'column_match', 'value': column}, width=3),
                     dbc.Col(
@@ -130,14 +165,16 @@ class TestTemplate(FormalTemplateInterface):
                             id={'type': 'column_match', 'value': column},
                             options=[{"label": i, "value": i} for i in range(len(self.columns_dict['Sales value']))],
                             required='required',
+                            value=idx
                         ),
                         width=9,
                     ),
                 ],
                 className="mb-3",
             ))
-        for column in self.columns_dict['Sales volume']:
-            dropdowns.append(dbc.Row(
+        volume_dropdowns = []
+        for idx, column in enumerate(self.columns_dict['Sales volume']):
+            volume_dropdowns.append(dbc.Row(
                 [
                     dbc.Label(column, html_for={'type': 'column_match', 'value': column}, width=3),
                     dbc.Col(
@@ -145,15 +182,19 @@ class TestTemplate(FormalTemplateInterface):
                             id={'type': 'column_match', 'value': column},
                             options=[{"label": i, "value": i} for i in range(len(self.columns_dict['Sales volume']))],
                             required='required',
+                            value=idx
                         ),
                         width=9,
                     ),
                 ],
                 className="mb-3",
             ))
+        value_dropdowns = [html.H5('Rank sales value per year : '), html.Hr()] + value_dropdowns if len(value_dropdowns) !=0 else value_dropdowns
+        volume_dropdowns = [html.H5('Rank sales volume per year : '), html.Hr()] + volume_dropdowns if len(volume_dropdowns) !=0 else volume_dropdowns
 
-        form = dbc.Form(children=dropdowns + [dbc.Row(
-            dbc.Button("Next", outline=True, color="dark", className="mr-auto", n_clicks=0, id='next_step',),
+
+        form = dbc.Form(children= value_dropdowns+ volume_dropdowns + [dbc.Row(
+            dbc.Button("Next", outline=True, color="dark", className="mr-auto", n_clicks=0, id='next_step', ),
             className="d-grid gap-2 col-3 mx-auto")])
         return 'ask_user', form
 
@@ -162,9 +203,13 @@ class TestTemplate(FormalTemplateInterface):
         s_volume_columns = []
         for value in values:
             if value['id']['value'] in self.columns_dict['Sales value']:
-                s_value_columns.append((value['value'], value['id']['value']))
+                s_value_columns.append((int(value['value']), value['id']['value']))
             if value['id']['value'] in self.columns_dict['Sales volume']:
-                s_volume_columns.append((value['value'], value['id']['value']))
+                s_volume_columns.append((int(value['value']), value['id']['value']))
+        print(set([value[0] for value in s_value_columns]))
+        print(s_value_columns)
+        if (len(set([value[0] for value in s_value_columns])) != len(s_value_columns)) or (len(set([value[0] for value in s_volume_columns])) != len(s_volume_columns)):
+            return 'raise_error', 'Sales columns can not have the same rank!', 'Input error', True
 
         s_value_columns.sort(key=lambda x: x[0])
         s_volume_columns.sort(key=lambda x: x[0])
@@ -173,7 +218,7 @@ class TestTemplate(FormalTemplateInterface):
 
         self.clean_data = df[self.get_columns()]
         self.clean_data.attrs['columns_dict'] = self.columns_dict
-        layout = [dbc.Row(html.H4('Your data is ready !')), dbc.Row(
+        layout = [dbc.Row(dbc.Alert(html.H4('Your data is ready !'), color="success")), dbc.Row(
             dbc.Button("Next", outline=True, color="dark", className="mr-auto", href='/dashboard', id='next_step',
                        n_clicks=0), className="d-grid gap-2 col-3 mx-auto")]
         return 'ask_user', layout
