@@ -26,6 +26,6 @@ class FormalTemplateInterface(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def build_dashboard(self, df: pd.DataFrame):
+    def build_dashboard(self):
         """build dashboard graphs"""
         raise NotImplementedError

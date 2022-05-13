@@ -6,6 +6,7 @@ import plotly.express as px
 from pandas.api.types import is_numeric_dtype
 from dash import no_update
 from collections import Counter
+from dash import Input, Output, html
 
 
 class TestTemplate(FormalTemplateInterface):
@@ -20,7 +21,9 @@ class TestTemplate(FormalTemplateInterface):
         self.pipline = [self.cat_num_columns, self.rank_class_sales, self.build_dataframe, self.empty_func]
         self.clean_data = None
         self.layout = None
+        self.current_layout = None
         self.clean_data = None
+        self.tabs_dict = dict()
         self.cat_options = [
             {"label": "Country level", "value": "Country level"},
             {"label": "Family level", "value": "Family level"},
@@ -65,18 +68,6 @@ class TestTemplate(FormalTemplateInterface):
     def prepare_data(self, df: pd.DataFrame):
         """Preprocess data for visualization"""
         return df
-
-    def build_dashboard(self, df: pd.DataFrame):
-        df = pd.DataFrame({
-            "Fruit": ["Apples", "Oranges", "Bananas", "Apples", "Oranges", "Bananas"],
-            "Amount": [4, 1, 2, 2, 4, 5],
-            "City": ["SF", "SF", "SF", "Montreal", "Montreal", "Montreal"]
-        })
-
-        fig = px.bar(df, x="Fruit", y="Amount", color="City", barmode="group")
-        dashboard = dbc.Container([dbc.Row(html.Div(children='''<template_unique_name>''')),
-                                   dbc.Row(dcc.Graph(id='example-graph', figure=fig))])
-        return dashboard
 
     def cat_num_columns(self, df, values=None):
         categorical = []
@@ -189,11 +180,13 @@ class TestTemplate(FormalTemplateInterface):
                 ],
                 className="mb-3",
             ))
-        value_dropdowns = [html.H5('Rank sales value per year : '), html.Hr()] + value_dropdowns if len(value_dropdowns) !=0 else value_dropdowns
-        volume_dropdowns = [html.H5('Rank sales volume per year : '), html.Hr()] + volume_dropdowns if len(volume_dropdowns) !=0 else volume_dropdowns
+        value_dropdowns = [html.H5('Sales value Timeline: year 0-year n'), html.Hr()] + value_dropdowns if len(
+            value_dropdowns) != 0 else value_dropdowns
+        volume_dropdowns = [html.H5('Sales volume'
+                                    ' Timeline: year 0-year n'), html.Hr()] + volume_dropdowns if len(
+            volume_dropdowns) != 0 else volume_dropdowns
 
-
-        form = dbc.Form(children= value_dropdowns+ volume_dropdowns + [dbc.Row(
+        form = dbc.Form(children=value_dropdowns + volume_dropdowns + [dbc.Row(
             dbc.Button("Next", outline=True, color="dark", className="mr-auto", n_clicks=0, id='next_step', ),
             className="d-grid gap-2 col-3 mx-auto")])
         return 'ask_user', form
@@ -206,9 +199,8 @@ class TestTemplate(FormalTemplateInterface):
                 s_value_columns.append((int(value['value']), value['id']['value']))
             if value['id']['value'] in self.columns_dict['Sales volume']:
                 s_volume_columns.append((int(value['value']), value['id']['value']))
-        print(set([value[0] for value in s_value_columns]))
-        print(s_value_columns)
-        if (len(set([value[0] for value in s_value_columns])) != len(s_value_columns)) or (len(set([value[0] for value in s_volume_columns])) != len(s_volume_columns)):
+        if (len(set([value[0] for value in s_value_columns])) != len(s_value_columns)) or (
+                len(set([value[0] for value in s_volume_columns])) != len(s_volume_columns)):
             return 'raise_error', 'Sales columns can not have the same rank!', 'Input error', True
 
         s_value_columns.sort(key=lambda x: x[0])
@@ -217,6 +209,7 @@ class TestTemplate(FormalTemplateInterface):
         self.columns_dict['Sales volume'] = [column[1] for column in s_volume_columns]
 
         self.clean_data = df[self.get_columns()]
+        self.current_layout = None
         self.clean_data.attrs['columns_dict'] = self.columns_dict
         layout = [dbc.Row(dbc.Alert(html.H4('Your data is ready !'), color="success")), dbc.Row(
             dbc.Button("Next", outline=True, color="dark", className="mr-auto", href='/dashboard', id='next_step',
@@ -234,3 +227,30 @@ class TestTemplate(FormalTemplateInterface):
 
     def empty_func(self, df, values):
         return 'ask_user', no_update
+
+    def build_dashboard(self):
+        Tabs = []
+        self.tabs_dict = dict()
+        for level in ['Country level', 'Family level', 'Molecule level', 'Brand level']:
+            if self.clean_data.attrs['columns_dict'][level] is not None:
+                Tabs.append(dbc.Tab(label=level, tab_id=f"tab-{level.split()[0]}"))
+                tab = f'test tab {level}'
+                self.tabs_dict[f"tab-{level.split()[0]}"] = tab
+
+        card = dbc.Card(
+            [
+                dbc.CardHeader(
+                    dbc.Tabs(Tabs, id="card-tabs", active_tab=list(self.tabs_dict.keys())[0], )
+                ),
+                dbc.CardBody(id="card-content"),
+            ]
+        )
+
+        dashboard = dbc.Container([dbc.Row(html.Div(children='''<template_unique_name>''')),
+                                   dbc.Row(card)])
+        return dashboard
+
+    def render_layout(self):
+        if self.current_layout is None:
+            self.current_layout = self.build_dashboard()
+        return self.current_layout

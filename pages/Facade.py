@@ -5,7 +5,6 @@ from .templates import TestTemplate2, TestTemplate
 class Facade(object):
     def __init__(self):
         self.current_template = None
-        self.current_layout = None
         self.raw_data = None
         self.preprocessed_data = None
         self.templates_list = [TestTemplate(), TestTemplate2()]
@@ -35,6 +34,4 @@ class Facade(object):
         self.current_template.pipline_index = 0
 
     def render_layout(self):
-        if self.current_layout is None:
-            self.current_layout = self.current_template.build_dashboard(self.preprocessed_data)
-        return self.current_layout
+        return self.current_template.render_layout()

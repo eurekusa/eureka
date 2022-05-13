@@ -1,6 +1,7 @@
 from dash import Input, Output, callback, no_update
 from app import facade
 from pages import import_data, gallery, dashboard
+from pages.callbacks import test_template_call
 
 
 @callback(Output('page-content', 'children'),
