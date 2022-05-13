@@ -1,5 +1,5 @@
 import pandas as pd
-from .templates import TestTemplate2, TestTemplate
+from .templates import TestTemplate2, ProductLaunch
 
 
 class Facade(object):
@@ -7,7 +7,7 @@ class Facade(object):
         self.current_template = None
         self.raw_data = None
         self.preprocessed_data = None
-        self.templates_list = [TestTemplate(), TestTemplate2()]
+        self.templates_list = [ProductLaunch(), TestTemplate2()]
 
     def get_template_by_name(self, name: str):
         for template in self.templates_list:
@@ -19,7 +19,6 @@ class Facade(object):
         if self.current_template is not None:
             self.raw_data = None
             self.preprocessed_data = None
-            self.current_layout = None
         self.current_template = self.get_template_by_name(name)
 
     def check_data_validity(self, values=None):

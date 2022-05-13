@@ -9,14 +9,24 @@ from collections import Counter
 from dash import Input, Output, html
 
 
-class TestTemplate(FormalTemplateInterface):
+class ProductLaunch(FormalTemplateInterface):
     def __init__(self):
-        self.name = '<template_unique_name>'
-        self.description = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ' \
-                           'ut labore et dolore magna aliqua. Aliquam id diam maecenas ultricies mi eget. Mi bibendum ' \
-                           'neque egestas congue quisque egestas diam in arcu. Non curabitur gravida arcu ac. '
+        self.name = 'Product launch'
+        self.description = [html.H5('This Dashboard has 4 views (Box in black) and will help guide  decisions around '
+                                    'the launch of molecule X.'),
+                            html.Ul([html.Li('1st view gives an idea about the size of opportunity in the region and '
+                                             'by country.'),
+                                     html.Li('2nd view gives an idea about the performance of a given products’ '
+                                             'family in a specific market.'),
+                                     html.Li('3rd view puts the light on molecule X and its performance compared to '
+                                             'other molecules mainly within the  same family in a specific country.'),
+                                     html.Li('4th view is for the forecast and future performance of the client in a '
+                                             'specific country.'),
+                                     html.Li('Besides the visualization part, Erikusa’s solution provides a set of '
+                                             'insights, social media sensors (optional)  and a scoring system for an '
+                                             'efficient data driven decision making.')])]
         self.imgPreview = 'test_preview.webp'
-        self.tags = ['<tag1>', '<tag2>']
+        self.tags = ['Scoring', 'Performance']
         self.pipline_index = 0
         self.pipline = [self.cat_num_columns, self.rank_class_sales, self.build_dataframe, self.empty_func]
         self.clean_data = None

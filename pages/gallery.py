@@ -70,7 +70,7 @@ for template in facade.templates_list:
                         [
                             html.H4(template.name, id='preview_modal_name', className="card-title"),
                             html.Div(render_tags(template), id='preview_modal_tags', className="card-text"),
-                            html.P(
+                            html.Div(
                                 template.description,
                                 id='preview_modal_description',
                                 className="card-text",
