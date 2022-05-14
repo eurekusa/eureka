@@ -13,6 +13,5 @@ app.layout = html.Div([
 global facade
 facade = Facade()
 
-
 if __name__ == '__main__':
     app.run_server(debug=True)

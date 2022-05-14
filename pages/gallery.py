@@ -84,7 +84,7 @@ for template in facade.templates_list:
                                 "Load this template",
                                 className="outlined",
                                 n_clicks=0,
-                            ), id={"type": "load_model_button", "name": template.name},href='/upload'), className='ml-auto')], className='m-2')
+                            ), id={"type": "load_model_button", "name": template.name},href='/upload'), className='ml-auto',width='auto')], className='m-2',justify='end')
                 ],
                 className="g-0",
             )
