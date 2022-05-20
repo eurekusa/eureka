@@ -282,6 +282,8 @@ class ProductLaunch(FormalTemplateInterface):
                 columns.append(level)
         countries = list(self.clean_data[self.clean_data.attrs['columns_dict']['Country level']].unique())
         max_input = len(countries)
+        switch_vol_val = 'Sales value' if len(self.clean_data.attrs['columns_dict']['Sales value']) else 'Sales volume'
+        S_columns = self.clean_data.attrs['columns_dict'][switch_vol_val]
 
         switch = daq.ToggleSwitch(id={'index': 'sales_toggle', 'type': 'Country level'},
                                   value=False if len(
@@ -290,7 +292,7 @@ class ProductLaunch(FormalTemplateInterface):
                                       len(self.clean_data.attrs['columns_dict']['Sales value'])) or not (
                                       len(self.clean_data.attrs['columns_dict']['Sales volume'])) else False)
         dropdown = dbc.DropdownMenu(
-            label='Filter',
+            label='Country',
             menu_variant="dark",
             children=[
                 dbc.Checklist(
@@ -308,7 +310,10 @@ class ProductLaunch(FormalTemplateInterface):
              dbc.Col(dropdown, className="mr-auto", width='auto'),
              ], align="center", justify='end', className='mb-2')
 
-        header_cards_2 = dbc.Row([dbc.Col(dbc.Row([dbc.Col(dbc.Card([
+        header_cards_2 = dbc.Row([
+            dbc.Col([
+                dbc.Row([
+                    dbc.Col(dbc.Card([
             dbc.CardHeader([dbc.Row(html.H5(id='RS_country_header')),
                             dbc.Row([dbc.Col(html.P("Top: ", className='m-0 p-0 mr-1'), width='auto'),
                                      dbc.Col(dbc.Input(type="number",
@@ -327,7 +332,7 @@ class ProductLaunch(FormalTemplateInterface):
                 ]
             ),
         ], color="primary", outline=True), className='mb-2'),
-            dbc.Col(dbc.Card([
+                    dbc.Col(dbc.Card([
                 dbc.CardHeader([dbc.Row(html.H5(id='RG_country_header')),
                                 dbc.Row([dbc.Col(html.P("Top:", className='m-0 p-0'), width='auto'),
                                          dbc.Col(dbc.Input(type="number",
@@ -345,7 +350,44 @@ class ProductLaunch(FormalTemplateInterface):
                                 className="card-title"),
                     ]
                 ),
-            ], color="primary", outline=True), className='mb-2'), ])), dbc.Col([dbc.Row([dbc.Col(dbc.Card([
+            ], color="primary", outline=True), className='mb-2'), ]),
+                dbc.Row(
+                    dbc.Col(dbc.Card([
+                dbc.CardHeader(dbc.Row(
+                    dbc.Col(html.H5(id='line_country_header', children='<Sales>', className='p-0 m-0'),
+                            width='auto'), align='center', justify='center')),
+                dbc.CardBody(
+                    [
+                        dbc.Row(dbc.Col(dcc.Graph(id='line_country')), align='center', justify='center'),
+
+                    ],className='p-0'
+                ),
+                dbc.CardFooter(
+                    dbc.Row(
+                        dbc.Accordion(
+                    dbc.AccordionItem(
+                        [dbc.Row(
+                            [
+                                dbc.Label('Sales per:', html_for='line_per', width=3),
+                                dbc.Col(
+                                    dbc.Select(
+                                        id='line_per',
+                                        options=[{"label": i, "value": i} for i in columns],
+                                        required='required',
+                                        value=columns[0],
+
+                                    ), width=3,
+                                ),
+                            ],
+                            className="mb-3",
+                        ),],
+                        title="Filters",
+                    ), start_collapsed=True, flush=True, )), class_name='p-0 m-0')
+            ], color="primary", outline=True), className='mb-2'), )],width=6),
+
+            dbc.Col([
+                dbc.Row([
+                    dbc.Col(dbc.Card([
             dbc.CardHeader(dbc.Row(
                 dbc.Col(html.H5(id='MS_country_header', children='<Market Size>', className='p-0 m-0'),
                         width='auto'), align='center', justify='center')),
@@ -356,7 +398,7 @@ class ProductLaunch(FormalTemplateInterface):
                 ]
             ),
         ], color="primary", outline=True), className='mb-2'),
-            dbc.Col(dbc.Card([
+                    dbc.Col(dbc.Card([
                 dbc.CardHeader(dbc.Row(dbc.Col(html.H5(id='cagr_country_header', className='p-0 m-0'), width='auto'),
                                        align='center', justify='center')),
                 dbc.CardBody(
@@ -366,7 +408,9 @@ class ProductLaunch(FormalTemplateInterface):
                                             className='p-0 m-0'), width='auto'), align='center', justify='center')
                     ]
                 ),
-            ], color="primary", outline=True), className='mb-2')], ), dbc.Row(dbc.Col(dbc.Card([
+            ], color="primary", outline=True), className='mb-2')], ),
+                dbc.Row(
+                    dbc.Col(dbc.Card([
             dbc.CardHeader(dbc.Row(
                 dbc.Col(html.H5(id='pie_country_header', children='<Market Share>', className='p-0 m-0'),
                         width='auto'), align='center', justify='center')),
@@ -395,7 +439,7 @@ class ProductLaunch(FormalTemplateInterface):
                     ),
                         dbc.Row(
                             [
-                                dbc.Label('Market share per:', html_for='pie_top', width=3),
+                                dbc.Label('Top:', html_for='pie_top', width=3),
                                 dbc.Col(dbc.Input(type="number",
                                                   min=0,
                                                   size='sm',
@@ -405,118 +449,72 @@ class ProductLaunch(FormalTemplateInterface):
                                                   step=1), width=3),
                             ],
                             className="mb-3",
-                        )],
+                        ),
+                        dbc.Row([dbc.Label('Timeline:', html_for='pie_country_slider', width=3),
+                                 dbc.Col(
+                                     dcc.RangeSlider(
+                                         id='pie_country_slider',
+                                         step=None,
+                                         min=0,
+                                         max=len(S_columns) - 1,
+                                         marks=dict(list(enumerate(S_columns))),
+                                         value=[0, len(S_columns) - 1]
+                                     ),
+                                 )],
+                                className="mb-3",
+
+                                )],
                     title="Filters",
                 ), start_collapsed=True, flush=True, )), class_name='p-0 m-0')
-        ], color="primary", outline=True), className='mb-2'), )])])
-        header_cards = dbc.Row([
-            dbc.Col(dbc.Card([
-                dbc.CardHeader(dbc.Row(
-                    dbc.Col(html.H5(id='MS_country_header', children='<Market Size>', className='p-0 m-0'),
-                            width='auto'), align='center', justify='center')),
-                dbc.CardBody(
-                    [
-                        dbc.Row(dbc.Col(html.H5(id='MS_country', children="<-- the value generated by the call back-->",
-                                                className='p-0 m-0'), width='auto'), align='center', justify='center')
-                    ]
-                ),
-            ], color="primary", outline=True), className='mb-2'),
-            dbc.Col(dbc.Card([
-                dbc.CardHeader(dbc.Row(dbc.Col(html.H5(id='cagr_country_header', className='p-0 m-0'), width='auto'),
-                                       align='center', justify='center')),
-                dbc.CardBody(
-                    [
-                        dbc.Row(
-                            dbc.Col(html.H5(id='cagr_country', children="<-- the value generated by the call back-->",
-                                            className='p-0 m-0'), width='auto'), align='center', justify='center')
-                    ]
-                ),
-            ], color="primary", outline=True), className='mb-2'),
-            dbc.Col(dbc.Card([
-                dbc.CardHeader([dbc.Row(html.H5(id='RS_country_header')),
-                                dbc.Row([dbc.Col(html.P("Top: ", className='m-0 p-0 mr-1'), width='auto'),
-                                         dbc.Col(dbc.Input(type="number",
-                                                           min=0,
-                                                           size='sm',
+        ], color="primary", outline=True), className='mb-2'), ),
+                dbc.Row(
+                    dbc.Col(dbc.Card([
+                        dbc.CardHeader(dbc.Row(
+                            dbc.Col(html.H5(id='bar_country_header', children='<Sales>', className='p-0 m-0'),
+                                    width='auto'), align='center', justify='center')),
+                        dbc.CardBody(
+                            [
+                                dbc.Row(dbc.Col(dcc.Graph(id='bar_country')), align='center', justify='center'),
 
-                                                           id='RS_top',
-                                                           max=max_input,
-                                                           value=5 if max_input > 5 else max_input,
-                                                           step=1), width='auto'), ], align="center", justify='start',
-                                        className="g-0")]),
+                            ],
+                        ),
+                        dbc.CardFooter(
+                            dbc.Row(
+                                dbc.Accordion(
+                                    dbc.AccordionItem(
+                                        [dbc.Row(
+                                            [
+                                                dbc.Label('Market size:', html_for='bar_per', width=3),
+                                                dbc.Col(
+                                                    dbc.Select(
+                                                        id='bar_per',
+                                                        options=[{"label": i, "value": i} for i in columns],
+                                                        required='required',
+                                                        value=columns[0],
 
-                dbc.CardBody(
-                    [
-                        html.H5(id='RS_country', children="<-- the value generated by the call back-->",
-                                className="card-title"),
-                    ]
-                ),
-            ], color="primary", outline=True), className='mb-2'),
-            dbc.Col(dbc.Card([
-                dbc.CardHeader([dbc.Row(html.H5(id='RG_country_header')),
-                                dbc.Row([dbc.Col(html.P("Top:", className='m-0 p-0'), width='auto'),
-                                         dbc.Col(dbc.Input(type="number",
-                                                           min=0,
-                                                           size='sm',
-                                                           id='RG_top',
-                                                           max=max_input,
-                                                           value=5 if max_input > 5 else max_input,
-                                                           step=1), width='auto'), ], align="center", justify='start',
-                                        className="g-0")]),
-
-                dbc.CardBody(
-                    [
-                        html.H5(id='RG_country', children="<-- the value generated by the call back-->",
-                                className="card-title"),
-                    ]
-                ),
-            ], color="primary", outline=True), className='mb-2'),
-            dbc.Col(dbc.Card([
-                dbc.CardHeader(dbc.Row(
-                    dbc.Col(html.H5(id='pie_country_header', children='<Market Share>', className='p-0 m-0'),
-                            width='auto'), align='center', justify='center')),
-                dbc.CardBody(
-                    [
-                        dbc.Row(dbc.Col(dcc.Graph(id='pie_country')), align='center', justify='center'),
-                        dbc.Row(dbc.Accordion(
-                            dbc.AccordionItem(
-                                [dbc.Row(
-                                    [
-                                        dbc.Label('Market share per:', html_for='per_pie', width=3),
-                                        dbc.Col(
-                                            dbc.Select(
-                                                id='pie_per',
-                                                options=[{"label": i, "value": i} for i in columns],
-                                                required='required',
-                                                value=columns[0],
-
-                                            ),
-                                            width=3,
+                                                    ), width=3,
+                                                ),
+                                            ],
+                                            className="mb-3",
                                         ),
-                                    ],
-                                    className="mb-3",
-                                ),
-                                    dbc.Row(
-                                        [
-                                            dbc.Label('Top:', html_for='pie_top', width=3),
-                                            dbc.Col(dbc.Input(type="number",
-                                                              min=0,
-                                                              size='sm',
-                                                              id='pie_top',
-                                                              max=max_input,
-                                                              value=5 if max_input > 5 else max_input,
-                                                              step=1), width=3),
+                                            dbc.Row(
+                                                [
+                                                    dbc.Label('Top:', html_for='bar_top', width=3),
+                                                    dbc.Col(dbc.Input(type="number",
+                                                                      min=0,
+                                                                      size='sm',
+                                                                      id='bar_top',
+                                                                      max=max_input,
+                                                                      value=5 if max_input > 5 else max_input,
+                                                                      step=1), width=3),
+                                                ],
+                                                className="mb-3",
+                                            )
                                         ],
-                                        className="mb-3",
-                                    )],
-                                title="Filters",
-                            ), flush=True, start_collapsed=True, ))
-                    ]
-                ),
-            ], color="primary", outline=True), className='mb-2'),
-        ]
-
-        )
+                                        title="Filters",
+                                    ), start_collapsed=True, flush=True, )), class_name='p-0 m-0')
+                    ], color="primary", outline=True), className='mb-2'), )
+            ],width=6)])
         return [tab_filters, header_cards_2]
 
     def get_family_tab(self):

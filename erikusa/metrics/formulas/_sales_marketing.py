@@ -66,9 +66,9 @@ def _growth(
     >>> formulas._growth(begin=10, final=15)
     0.5
     """
-    try:
+    if begin:
         result= (final-begin)/begin
-    except:
+    else:
         result= 0
     return result
 
