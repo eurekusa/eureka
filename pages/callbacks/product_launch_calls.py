@@ -11,6 +11,44 @@ from dash import no_update
 from dash.exceptions import PreventUpdate
 
 
+def trim_sales(number):
+    length = len(str(round(number)))
+
+    d, m = divmod(length, 3)
+
+    d = d if m else d - 1
+    conv_dict = {1: str(round(number / 10 ** 3, 2)) + ' K',
+                 2: str(round(number / 10 ** 6, 2)) + ' M',
+                 3: str(round(number / 10 ** 9, 2)) + ' B',
+                 0: str(number)}
+    return conv_dict[d]
+
+
+def trim_percentage(number):
+    return round(number * 100, 2)
+
+
+def style_percentage(percent):
+    if percent > 0:
+        return html.P(f'+{percent}%', style={'color': 'rgb(0 135 60)'})
+    if percent < 0:
+        return html.P(f'{percent}%', style={'color': 'rgb(235 15 41)'})
+    else:
+        return html.P(f'{percent}%')
+
+
+triming_dict = {
+    'Market size volume': trim_sales,
+    'Market size value': trim_sales,
+    'Market share volume': lambda x: style_percentage(trim_percentage(x)),
+    'Growth in Volume': lambda x: style_percentage(trim_percentage(x)),
+    'CAGR in volume': lambda x: style_percentage(trim_percentage(x)),
+    'Market share value': lambda x: style_percentage(trim_percentage(x)),
+    'Growth in value': lambda x: style_percentage(trim_percentage(x)),
+    'CAGR in value': lambda x: style_percentage(trim_percentage(x)),
+}
+
+
 @callback(
     Output("card-content", "children"), [Input("card-tabs", "active_tab")]
 )
@@ -71,7 +109,7 @@ def market_size(value, countries, range):
     S_column = df.attrs['columns_dict'][value]
     S_column = [S_column[i] for i in range]
     ms = df[S_column].sum(axis=1).sum()
-    return f"Market size in {msg}", str(ms)
+    return f"Market size in {msg}", trim_sales(ms)
 
 
 @callback(
@@ -97,7 +135,6 @@ def cagr_card(value, countries, range):
     return f"CAGR in {value.split()[1]}", "{:.2f}%".format(0)
 
 
-
 @callback(
     Output('RS_country_header', "children"),
     Output('RS_country', "children"),
@@ -121,8 +158,9 @@ def RS_card(value, top, countries, range, per):
     volume = df[[C_column] + S_columns]
     volume = volume.groupby(by=C_column).sum().reset_index(level=[C_column])
     volume['Sales'] = volume[S_columns].sum(1)
+    volume['TSales'] = volume['Sales'].apply(trim_sales)
     country_sales = volume.sort_values('Sales', ascending=False)[
-                            [df.attrs['columns_dict'][per], 'Sales']][:top].values
+                        [df.attrs['columns_dict'][per], 'TSales']][:top].values
     msg = f"Ranking {per.split()[0]} by sales in {value.split()[1]}"
     body = []
     if len(range):
@@ -141,9 +179,8 @@ def RS_card(value, top, countries, range, per):
     Input({'index': 'top', 'level': 'country'}, 'value'),
     Input("country_checklist", 'value'),
     Input('range_checklist', 'value'),
-    Input('per', 'value'),)
+    Input('per', 'value'), )
 def RG_card(value, top, countries, range, per):
-
     country_growth = None
     range.sort()
     df = facade.current_template.clean_data
@@ -154,7 +191,7 @@ def RG_card(value, top, countries, range, per):
 
     body = []
     msg = f"Ranking {per.split()[0]} by Growth in {value.split()[1]}"
-    if len(range)>1 and len(countries):
+    if len(range) > 1 and len(countries):
         S_columns = df.attrs['columns_dict'][value]
         S_columns = [S_columns[i] for i in range]
         volume = df[[C_column] + S_columns]
@@ -162,7 +199,9 @@ def RG_card(value, top, countries, range, per):
         volume['Growth'] = growth(data=volume, begin=S_columns[0], final=S_columns[-1]).values
         country_growth = volume.sort_values('Growth', ascending=False)[[
             df.attrs['columns_dict'][per], 'Growth']][:top].values
-        body = [html.Tbody([html.Tr([html.Td(country[0]), html.Td("{:.2f}%".format(country[1] * 100))]) for country in country_growth])]
+        body = [html.Tbody([html.Tr([html.Td(country[0]), html.Td("{:.2f}%".format(country[1] * 100))]) for country in
+                            country_growth])]
+
     headers = [html.Thead(html.Tr([html.Th(per.split()[0]), html.Th("Growth")]))]
     table = dbc.Table(headers + body)
     return msg, table
@@ -249,7 +288,7 @@ def MS_country_bar_card(value, per_filter, top, countries, range):
     C_column = df.attrs['columns_dict'][per_filter]
 
     S_columns = df.attrs['columns_dict'][value]
-    S_columns=[S_columns[i] for i in range]
+    S_columns = [S_columns[i] for i in range]
     df = df[[C_column] + S_columns]
     df = df.groupby(by=C_column).sum().reset_index(level=[C_column])
 
@@ -305,25 +344,41 @@ def country_bubble_card(value, per, countries, range):
     begin = S_columns[0]
     final = S_columns[-1]
     t = range[-1] - range[0]
-    df['CAGR'] = cagr(df,begin=begin, final=final, t=t).values * 100
-    df['MS'] = (df['Sales'] / df['Sales'].sum())*100
+    df['CAGR'] = cagr(df, begin=begin, final=final, t=t).values * 100
+    df['MS'] = (df['Sales'] / df['Sales'].sum()) * 100
 
     fig = go.Figure(data=[go.Scatter(
         x=df['Sales'], y=df['CAGR'],
         mode='markers',
         text=df[C_column],
         marker=dict(
-        size=df['MS'],
-        color=df['MS'],
-        sizemode='area',
-        sizeref=2.*(df['MS'].max())/(40.**2),
-        sizemin=4
-    )
+            size=df['MS'],
+            color=df['MS'],
+            sizemode='area',
+            sizeref=2. * (df['MS'].max()) / (40. ** 2),
+            sizemin=4
+        )
     )])
     return f'Market Size/CAGR/Share in {value.split()[1]} per {per.split()[0]}', fig
 
 
+@callback(
+    Output('scoring_country', "children"),
+    Input({'index': 'top', 'level': 'country'}, 'value'),
+    Input("country_checklist", 'value'),
+)
+def country_scoring_table(top, countries):
+    df = facade.current_template.country_scores
+    c_column = df.attrs['columns']['Country level']
+    m_columns = df.attrs['columns']['Score Column']
+    df = df[df[c_column].isin(countries)][:top]
+    rows = [html.Tr(
+        [html.Td(country[c_column])] + [html.Td(triming_dict[metric](country[metric])) for metric in m_columns] + [html.Td(round(country['Score'],1))])
+        for _, country in df.iterrows()]
+    body = [html.Tbody(rows)]
+    headers = [
+        html.Thead(html.Tr([html.Th('Country')] + [html.Th(metric) for metric in m_columns] + [html.Th("Score")]))]
 
+    table = dbc.Table(headers + body)
 
-
-
+    return table

@@ -9,6 +9,8 @@ from collections import Counter
 from dash import Input, Output, html
 import dash_daq as daq
 import plotly.graph_objs as go
+from erikusa.metrics import cagr, growth
+from sklearn.preprocessing import StandardScaler
 
 
 class ProductLaunch(FormalTemplateInterface):
@@ -64,6 +66,7 @@ class ProductLaunch(FormalTemplateInterface):
             'Molecule level': lambda x: x.get_molecule_tab(),
             'Brand level': lambda x: x.get_brand_tab(),
         }
+        self.country_scores = None
 
     def reset_columns(self):
         self.columns_dict = {'Country level': None,
@@ -276,6 +279,7 @@ class ProductLaunch(FormalTemplateInterface):
         return self.current_layout
 
     def get_country_tab(self):
+        self.scoring_country_view()
         columns = []
         for level in ['Country level', 'Family level', 'Molecule level', 'Brand level']:
             if self.clean_data.attrs['columns_dict'][level] is not None:
@@ -439,7 +443,22 @@ class ProductLaunch(FormalTemplateInterface):
 
                             ],
                         ),
-                    ], color="primary", outline=True), className='mb-2'), )
+                    ], color="primary", outline=True), className='mb-2'), ),
+                dbc.Row(
+                    dbc.Col(dbc.Card([
+                        dbc.CardHeader(dbc.Row(
+                            dbc.Col(html.H5(children='Country Scoring', className='p-0 m-0'),
+                                    width='auto'), align='center', justify='center')),
+                        dbc.CardBody(
+                            [
+                                dbc.Row(dbc.Col(id='scoring_country'), align='center', justify='center'),
+
+                            ],
+                        ),
+                    ], color="primary", outline=True), className='mb-2')
+
+
+                )
             ], width=6)])
         return [tab_filters, header_cards_2]
 
@@ -452,3 +471,43 @@ class ProductLaunch(FormalTemplateInterface):
 
     def get_brand_tab(self):
         return []
+
+    def scoring_country_view(self):
+        c_column = self.clean_data.attrs['columns_dict']['Country level']
+        df = self.clean_data
+        vol_columns = self.clean_data.attrs['columns_dict']['Sales volume']
+        val_columns = self.clean_data.attrs['columns_dict']['Sales value']
+        df = df[vol_columns+val_columns+[c_column]]
+        df = df.groupby(by=[c_column]).sum().reset_index(level=[c_column])
+        scoring_columns = []
+        if len(vol_columns):
+            df['Market size volume'] = df[vol_columns].sum(1)
+            scoring_columns.append('Market size volume')
+            df['Market share volume'] = df['Market size volume']/df['Market size volume'].sum()
+            scoring_columns.append('Market share volume')
+            if len(vol_columns) > 1:
+                df['Growth in Volume'] = growth(data=df, begin=vol_columns[0], final=vol_columns[-1]).values
+                scoring_columns.append('Growth in Volume')
+            if len(vol_columns)>2:
+                df['CAGR in volume'] = cagr(data=df, begin=vol_columns[0], final=vol_columns[-1],t = len(vol_columns)-1).values
+                scoring_columns.append('CAGR in volume')
+        if len(val_columns):
+            df['Market size value']=df[val_columns].sum(1)
+            scoring_columns.append('Market size value')
+            df['Market share value'] = df['Market size value'] / df['Market size value'].sum()
+            scoring_columns.append('Market share value')
+            if len(val_columns) > 1:
+                df['Growth in value'] = growth(data=df, begin=val_columns[0], final=val_columns[-1]).values
+                scoring_columns.append('Growth in value')
+            if len(val_columns)>2:
+                df['CAGR in value'] = cagr(data=df, begin=val_columns[0], final=val_columns[-1],
+                                      t=len(val_columns) - 1).values
+                scoring_columns.append('CAGR in value')
+        df['Score'] =StandardScaler().fit_transform(df[scoring_columns]).sum(axis=1)
+        df.sort_values('Score', ascending=False, inplace=True)
+        self.country_scores = df[[c_column]+scoring_columns+['Score']]
+
+        self.country_scores.attrs['columns'] = {'Country level':c_column,
+                                                'Score Column':scoring_columns}
+
+
