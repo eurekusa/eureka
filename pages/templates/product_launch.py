@@ -103,6 +103,7 @@ class ProductLaunch(FormalTemplateInterface):
                                 id={'type': 'column_match', 'value': column},
                                 options=self.num_options,
                                 required='required',
+                            className='selectpicker'
                             ),
                             width=9,
                         ),
@@ -117,7 +118,8 @@ class ProductLaunch(FormalTemplateInterface):
                             dbc.Select(
                                 id={'type': 'column_match', 'value': column},
                                 options=self.cat_options,
-                                required='required'
+                                required='required',
+                                className='selectpicker'
                             ),
                             width=9,
                         ),
@@ -127,13 +129,13 @@ class ProductLaunch(FormalTemplateInterface):
 
         form = dcc.Loading(dbc.Container(id='data_form', children=[dbc.Form(children=[html.H5('Select categorical '
                                                                                               'columns type '
-                                                                                              ':'),
-                                                                                      html.Hr()] + categorical +
+                                                                                              ':',className='file-text'),
+                                                                                      html.Hr(className='form-hr')] + categorical +
                                                                                      [html.H5('Select sales type (in '
                                                                                               'value/volume) '
-                                                                                              ':'), html.Hr()] +
+                                                                                              ':',className='file-text'), html.Hr(className='form-hr')] +
                                                                                      numerical + [dbc.Row(
-            dbc.Button("Next", outline=True, color="dark", className="mr-auto", n_clicks=0, id='next_step'),
+            dbc.Button("Next", className="mr-auto outlined", n_clicks=0, id='next_step'),
             className="d-grid gap-2 col-3 mx-auto")])]))
 
         if len(categorical) == 0:
@@ -177,7 +179,8 @@ class ProductLaunch(FormalTemplateInterface):
                             id={'type': 'column_match', 'value': column},
                             options=[{"label": i, "value": i} for i in range(len(self.columns_dict['Sales value']))],
                             required='required',
-                            value=idx
+                            value=idx,
+                            className='selectpicker'
                         ),
                         width=9,
                     ),
@@ -194,21 +197,22 @@ class ProductLaunch(FormalTemplateInterface):
                             id={'type': 'column_match', 'value': column},
                             options=[{"label": i, "value": i} for i in range(len(self.columns_dict['Sales volume']))],
                             required='required',
-                            value=idx
+                            value=idx,
+                            className='selectpicker'
                         ),
                         width=9,
                     ),
                 ],
                 className="mb-3",
             ))
-        value_dropdowns = [html.H5('Sales value Timeline: year 0-year n'), html.Hr()] + value_dropdowns if len(
+        value_dropdowns = [html.H5('Sales value Timeline: year 0-year n',className='file-text'), html.Hr(className='form-hr')] + value_dropdowns if len(
             value_dropdowns) != 0 else value_dropdowns
         volume_dropdowns = [html.H5('Sales volume'
-                                    ' Timeline: year 0-year n'), html.Hr()] + volume_dropdowns if len(
+                                    ' Timeline: year 0-year n',className='file-text'), html.Hr(className='form-hr')] + volume_dropdowns if len(
             volume_dropdowns) != 0 else volume_dropdowns
 
         form = dbc.Form(children=value_dropdowns + volume_dropdowns + [dbc.Row(
-            dbc.Button("Next", outline=True, color="dark", className="mr-auto", n_clicks=0, id='next_step', ),
+            dbc.Button("Next", className="mr-auto outlined", n_clicks=0, id='next_step', ),
             className="d-grid gap-2 col-3 mx-auto")])
         return 'ask_user', form
 
@@ -233,7 +237,7 @@ class ProductLaunch(FormalTemplateInterface):
         self.current_layout = None
         self.clean_data.attrs['columns_dict'] = self.columns_dict
         layout = [dbc.Row(dbc.Alert(html.H4('Your data is ready !'), color="success")), dbc.Row(
-            dbc.Button("Next", outline=True, color="dark", className="mr-auto", href='/dashboard', id='next_step',
+            dbc.Button("Next",className="mr-auto outlined", href='/dashboard', id='next_step',
                        n_clicks=0), className="d-grid gap-2 col-3 mx-auto")]
         return 'ask_user', layout
 
@@ -250,27 +254,20 @@ class ProductLaunch(FormalTemplateInterface):
         return 'ask_user', no_update
 
     def build_dashboard(self):
-        Tabs = []
-        self.tabs_dict = dict()
+        tabs_content = []
         for level in ['Country level', 'Family level', 'Molecule level', 'Brand level']:
             if self.clean_data.attrs['columns_dict'][level] is not None:
-                Tabs.append(dbc.Tab(label=level, tab_id=f"tab-{level.split()[0]}"))
+                tabs_content.append(dbc.Tab(
+                    dbc.Container(children=self.get_tab[level](self), fluid=True,className='p-1',style={'background-color': 'rgb(234,236,242)', })
+                                    ,label=level,labelClassName="tab_text",tabClassName='tab_btn'))
 
-                tab = dbc.Container(
-                    children=self.get_tab[level](self)
-                    , fluid=True)
-                self.tabs_dict[f"tab-{level.split()[0]}"] = tab
 
-        card = dbc.Card(
-            [
-                dbc.CardHeader(
-                    dbc.Tabs(Tabs, id="card-tabs", active_tab=list(self.tabs_dict.keys())[0], )
-                ),
-                dbc.CardBody(id="card-content"),
-            ]
+
+
+        tabs= dbc.Tabs(
+                tabs_content
         )
-
-        dashboard = dbc.Container([dbc.Row(card)], className='mt-2', fluid=True)
+        dashboard = dbc.Container([dbc.Row(html.H3(self.name,className='ml-3 header_text')),dbc.Row(tabs)], className='p-0  mt-2', fluid=True)
         return dashboard
 
     def render_layout(self):
@@ -460,7 +457,7 @@ class ProductLaunch(FormalTemplateInterface):
 
                 )
             ], width=6)])
-        return [tab_filters, header_cards_2]
+        return [tab_filters,header_cards_2]
 
     def get_family_tab(self):
 

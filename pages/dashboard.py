@@ -6,7 +6,7 @@ from app import facade, app
 import dash_bootstrap_components as dbc
 from dash.exceptions import PreventUpdate
 
-ERIKUSA_LOGO = app.get_asset_url('Erikusa_BBG.png')
+ERIKUSA_LOGO = app.get_asset_url('Ericon-WBK.png')
 
 navbar = dbc.Navbar(
     dbc.Container(
@@ -15,32 +15,34 @@ navbar = dbc.Navbar(
             # Use row and col to control vertical alignment of logo / brand
             dbc.Row(
                 [
-                    dbc.Col(html.Img(src=ERIKUSA_LOGO, height="30px")),
+                    dbc.Col(html.Img(src=ERIKUSA_LOGO, height="40em")),
                 ],
                 align="center",
                 className="g-0",
             ),
             dbc.Row(
                 [
-                    dbc.Col(dcc.Link(dbc.Button([html.I(className="bi bi-columns-gap"),"  Change template"], outline=True, color="light",style={'white-space': 'nowrap'}),
-                                     href='/'), className="mr-auto"),
-                    dbc.Col(dcc.Link(dbc.Button([html.I(className="bi bi-file-earmark-arrow-down"),"  Import new data"], outline=True, color="light"),
+
+                dbc.Col(
+                        dbc.Button([html.I(className="bi bi-columns-gap"), "  Change template"], outline=True, href='/',className='outlined',style={'white-space': 'nowrap'}), className="mr-auto"),
+                 dbc.Col(
+                     dcc.Link(dbc.Button([html.I(className="bi bi-file-earmark-arrow-down"),"  Import new data"],class_name='outlined'),
                                      href='/upload'), className="mr-auto")
                 ],
                 align="center")
         ],
         fluid=True),
-    className='shadow',
-    color='#2c2b30',
+    className='shadow import_nav',
     sticky="top",
 )
 
 
+
 def render_template(dashboard):
-    layout = html.Div([
-        navbar,
-        dashboard
-    ])
+    layout = dbc.Container([
+        dbc.Row(navbar,className='p-0 m-0'),
+        dbc.Row(dbc.Col(dashboard,className='p-0 m-0'),className='p-0 m-0',style={'background-color': '#fff'})
+    ],fluid=True, style={'background-color': 'rgb(234,236,242)', }, className='p-0')
     return layout
 
 

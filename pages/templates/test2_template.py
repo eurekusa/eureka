@@ -7,7 +7,7 @@ import plotly.express as px
 
 class TestTemplate2(FormalTemplateInterface):
     def __init__(self):
-        self.name = '<template_unique_name2>'
+        self.name = '<template_name>'
         self.description = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor ' \
                            'incididuntut labore et dolore magna aliqua. Aliquam id diam maecenas ultricies mi eget. ' \
                            'Mi bibendum neque egestas congue quisque egestas diam in arcu. Non curabitur gravida arcu ' \

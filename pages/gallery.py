@@ -6,25 +6,7 @@ from app import facade, app
 import dash_bootstrap_components as dbc
 from dash.exceptions import PreventUpdate
 
-ERIKUSA_LOGO = app.get_asset_url('Erikusa_BBG.png')
-
-navbar = dbc.Navbar(
-    dbc.Container(
-        [
-
-            # Use row and col to control vertical alignment of logo / brand
-            dbc.Row(
-                [
-                    dbc.Col(html.Img(src=ERIKUSA_LOGO, height="30px")),
-                ],
-                align="center",
-                className="g-0",
-            )],
-        fluid=True),
-    className='shadow',
-    color='#2c2b30',
-    sticky="top",
-)
+ERIKUSA_LOGO = app.get_asset_url('Ericon-WBK.png')
 
 
 def render_tags(template):
@@ -46,9 +28,9 @@ for template in facade.templates_list:
         dbc.CardBody(
             [html.H5(template.name, className="card-title"),
              html.Div(render_tags(template), className="card-text"),
-             dbc.Button(html.I(className="bi bi-eye"),
+             dbc.Row(dbc.Col(dbc.Button(html.I(className="bi bi-eye"),
                         id={'type': 'template_card_button', 'name': template.name},
-                        className='mt-2 outlined'),
+                        className='outlined'),className='ml-auto',width='auto'),justify='end'),
              ],
             className='m-1 p-1'),
     ],
@@ -84,7 +66,8 @@ for template in facade.templates_list:
                                 "Load this template",
                                 className="outlined",
                                 n_clicks=0,
-                            ), id={"type": "load_model_button", "name": template.name},href='/upload'), className='ml-auto',width='auto')], className='m-2',justify='end')
+                            ), id={"type": "load_model_button", "name": template.name}, href='/upload'),
+                                className='ml-auto', width='auto')], className='m-2', justify='end')
                 ],
                 className="g-0",
             )
@@ -101,12 +84,24 @@ gallery = html.Div(
     [dbc.Container(dbc.Row(gallery_content, justify="center"), className="mt-12"),
      ]
 )
+background = app.get_asset_url('business.jpg')
+layout = dbc.Container(
+    [dbc.Container(
+        html.Div(
+            dbc.Row(
+                [
+                    dbc.Col(html.Img(src=ERIKUSA_LOGO, height="200em", style={'vertical-align': 'middle'}),
+                            width='auto'),
+                    dbc.Col([html.H1('Just a PEEK to ACT'), html.Div(html.P('with Erikusa', className='p-0 m-0 text'),className='typing'), ],
+                            width='auto'),
+                ],
+                justify='center',
+                align='center', ), className='transparent-header p-5')
 
-layout = html.Div([
-    navbar,
-    html.H3("Dashboard Templates Gallery", className='main_header'),
-    gallery
-])
+        , class_name='gallery-header p-0',
+        style={'background-image': "url('/assets/business.jpg')"}, fluid=True),
+        dbc.Container([dbc.Row(html.H3('Dashboards gallery',className='header_text')), dbc.Row(gallery_content, justify="center",className='gallery')], className='gallery',fluid=True), ],
+    fluid=True, style={'background-color': 'rgb(234,236,242)', }, className='p-0')
 
 
 @callback(
@@ -131,3 +126,5 @@ def load_template(n1):
     button_id = ast.literal_eval(dash.callback_context.triggered[0]['prop_id'].split('.')[0])
     facade.set_template(button_id['name'])
     return True
+
+

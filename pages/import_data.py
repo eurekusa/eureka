@@ -7,7 +7,7 @@ from dash import dcc, html, Input, State, Output, callback, ALL
 from app import facade, app
 import dash_bootstrap_components as dbc
 
-ERIKUSA_LOGO = app.get_asset_url('Erikusa_BBG.png')
+ERIKUSA_LOGO = app.get_asset_url('Ericon-WBK.png')
 
 input_data_toast = dbc.Toast("Your file is empty",
                              id="input_toast",
@@ -37,53 +37,62 @@ navbar = dbc.Navbar(
             # Use row and col to control vertical alignment of logo / brand
             dbc.Row(
                 [
-                    dbc.Col(html.Img(src=ERIKUSA_LOGO, height="30px")),
+                    dbc.Col(html.Img(src=ERIKUSA_LOGO, height="40em")),
                 ],
                 align="center",
                 className="g-0",
             ),
             dbc.Row(
                 [
-                    dbc.Col(dcc.Link(
-                        dbc.Button([html.I(className="bi bi-columns-gap"), "  Change template"], outline=True,
-                                   color="light"),
-                        href='/'), className="mr-auto"),
+                    dbc.Col(
+                        dbc.Button([html.I(className="bi bi-columns-gap"), "  Change template"], outline=True, href='/',className='outlined'), className="mr-auto"),
                 ],
                 align="center")
         ],
         fluid=True),
-    className='shadow',
-    color='#2c2b30',
+    className='shadow import_nav',
     sticky="top",
 )
 upload = dcc.Upload(
     id='upload-data',
-    children=html.Div([
-        'Drag and Drop or ',
-        html.A('Select data file', style={'font-weight': 'bold', })
+    children=dbc.Container([
+        dbc.Row(html.I(className='bi bi-cloud-arrow-up-fill upload-icon')),
+        'Drag and Drop here ','or ',
+        html.A('Browse', style={'font-weight': 'bold', })
+
     ]),
     style={
         'width': '100%',
-        'height': '60px',
         'lineHeight': '60px',
-        'borderWidth': '1px',
+        'borderWidth': '2px',
         'borderStyle': 'dashed',
         'borderRadius': '5px',
         'textAlign': 'center',
         'margin': '10px',
+        'border-color': '#4be3ae'
     },
     # Allow multiple files to be uploaded
     multiple=False
 )
 
 upload_file_card = [
-    dbc.CardHeader(html.H5("Upload document")),
+    dbc.CardHeader(html.H5("Upload your data!",className='import_text')),
     dbc.CardBody(
         [
             input_data_toast,
-            dcc.Loading(upload,
-                        type="default",
-                        )
+            dbc.Container([dbc.Row(
+            dbc.Col([
+                dbc.Row([dbc.Col(html.P('Accepted file formats:',className='p-0 m-0 file-text'),className='p-0')]),
+                dbc.Row([dbc.Col(html.I(className="bi bi-filetype-csv file-icon"),width='auto',className='p-0'),dbc.Col(html.P('CSV files',className='m-0 p-0 file-format'),width='auto')],align='center'),
+                dbc.Row([dbc.Col(html.I(className="bi bi-filetype-xls file-icon"),width='auto',className='p-0'),dbc.Col(html.P('Excel files',className='m-0 p-0 file-format'),width='auto')],align='center')
+            ]
+
+            ),justify='center'),
+                           dbc.Row(dbc.Col(dcc.Loading(upload,
+                                       type="default",
+                                       ),align='center'),justify='center')
+                           ],fluid=True)
+
         ],
         style={"marginTop": 0, "marginBottom": 0},
     ),
@@ -102,7 +111,7 @@ error_modal = dbc.Modal(
 data_validity_modal = dbc.Modal(
     [column_checking_toast,
 
-        dbc.ModalHeader(dbc.ModalTitle("Data validation"), close_button=True),
+        dbc.ModalHeader(dbc.ModalTitle("Data validation", className='import_text'), close_button=True),
         dcc.Loading(dbc.ModalBody(id="data_validity_Body",
                                   children=[dbc.Alert('Oops! Something wrong happened !', color="danger")])),
     ],
@@ -123,7 +132,7 @@ layout = html.Div([
         ],
         className="mt-12",
     ),
-])
+],className='gallery')
 
 
 @callback(

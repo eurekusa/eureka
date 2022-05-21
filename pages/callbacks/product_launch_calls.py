@@ -49,11 +49,11 @@ triming_dict = {
 }
 
 
-@callback(
-    Output("card-content", "children"), [Input("card-tabs", "active_tab")]
-)
-def tab_content(active_tab):
-    return facade.current_template.tabs_dict[active_tab]
+#@callback(
+#    Output("card-content", "children"), [Input("card-tabs", "active_tab")]
+#)
+#def tab_content(active_tab):
+#    return facade.current_template.tabs_dict[active_tab]
 
 
 @callback(
