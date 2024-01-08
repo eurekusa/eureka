@@ -30,6 +30,8 @@ def _cagr(
     >>> formulas._cagr(begin=10, final=15,t=4)
     0.10668191970032148
     """
+    if t==0 or begin==0:
+        return 0
     try:
         return (final/begin)**(1/t)-1
     except:

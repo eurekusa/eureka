@@ -12,7 +12,7 @@ class TestTemplate2(FormalTemplateInterface):
                            'incididuntut labore et dolore magna aliqua. Aliquam id diam maecenas ultricies mi eget. ' \
                            'Mi bibendum neque egestas congue quisque egestas diam in arcu. Non curabitur gravida arcu ' \
                            'ac. '
-        self.imgPreview = 'test2_preview.webp'
+        self.imgPreview = 'test_preview.jpg'
         self.tags = ['marketing', 'operation']
         self.pipline_index = 0
         self.pipline = []

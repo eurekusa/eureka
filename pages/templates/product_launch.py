@@ -16,20 +16,25 @@ from sklearn.preprocessing import StandardScaler
 class ProductLaunch(FormalTemplateInterface):
     def __init__(self):
         self.name = 'Product launch'
-        self.description = [html.H5('This Dashboard has 4 views (Box in black) and will help guide  decisions around '
-                                    'the launch of molecule X.'),
+        self.description = [html.H5('This dashboard helps guide decision-making about where to launch and what molecule or product to launch in a specific therapeutic area.  It has 4 views:'),
                             html.Ul([html.Li('1st view gives an idea about the size of opportunity in the region and '
                                              'by country.'),
-                                     html.Li('2nd view gives an idea about the performance of a given products’ '
-                                             'family in a specific market.'),
-                                     html.Li('3rd view puts the light on molecule X and its performance compared to '
-                                             'other molecules mainly within the  same family in a specific country.'),
-                                     html.Li('4th view is for the forecast and future performance of the client in a '
-                                             'specific country.'),
-                                     html.Li('Besides the visualization part, Erikusa’s solution provides a set of '
-                                             'insights, social media sensors (optional)  and a scoring system for an '
-                                             'efficient data driven decision making.')])]
-        self.imgPreview = 'test_preview.webp'
+                                     html.Li('2nd view gives an idea about the performance of the therapeutic '
+                                             'families in a specific market.'),
+                                     html.Li('3rd view highlights the performance of a specific molecule compared to '
+                                             'other molecules  within the same family and in the selected markets.'),
+                                     html.Li('4th view is for the forecast and future performance of the chosen '
+                                             'molecule in a specific market(s).'),])
+                            ,html.H5('Besides the visualization part, this solution provides a set of AI generated '
+                                     'insights, social media sensors (optional) and a scoring system to help seize '
+                                     'the best opportunities for a successful and strategic product launch.')
+                            ]
+
+
+
+
+
+        self.imgPreview = 'test_preview.jpg'
         self.tags = ['Scoring', 'Performance']
         self.pipline_index = 0
         self.pipline = [self.cat_num_columns, self.rank_class_sales, self.build_dataframe, self.empty_func]
@@ -103,7 +108,7 @@ class ProductLaunch(FormalTemplateInterface):
                                 id={'type': 'column_match', 'value': column},
                                 options=self.num_options,
                                 required='required',
-                            className='selectpicker'
+                                className='selectpicker'
                             ),
                             width=9,
                         ),
@@ -129,11 +134,15 @@ class ProductLaunch(FormalTemplateInterface):
 
         form = dcc.Loading(dbc.Container(id='data_form', children=[dbc.Form(children=[html.H5('Select categorical '
                                                                                               'columns type '
-                                                                                              ':',className='file-text'),
-                                                                                      html.Hr(className='form-hr')] + categorical +
+                                                                                              ':',
+                                                                                              className='file-text'),
+                                                                                      html.Hr(
+                                                                                          className='form-hr')] + categorical +
                                                                                      [html.H5('Select sales type (in '
                                                                                               'value/volume) '
-                                                                                              ':',className='file-text'), html.Hr(className='form-hr')] +
+                                                                                              ':',
+                                                                                              className='file-text'),
+                                                                                      html.Hr(className='form-hr')] +
                                                                                      numerical + [dbc.Row(
             dbc.Button("Next", className="mr-auto outlined", n_clicks=0, id='next_step'),
             className="d-grid gap-2 col-3 mx-auto")])]))
@@ -205,10 +214,12 @@ class ProductLaunch(FormalTemplateInterface):
                 ],
                 className="mb-3",
             ))
-        value_dropdowns = [html.H5('Sales value Timeline: year 0-year n',className='file-text'), html.Hr(className='form-hr')] + value_dropdowns if len(
+        value_dropdowns = [html.H5('Sales value Timeline: year 0-year n', className='file-text'),
+                           html.Hr(className='form-hr')] + value_dropdowns if len(
             value_dropdowns) != 0 else value_dropdowns
         volume_dropdowns = [html.H5('Sales volume'
-                                    ' Timeline: year 0-year n',className='file-text'), html.Hr(className='form-hr')] + volume_dropdowns if len(
+                                    ' Timeline: year 0-year n', className='file-text'),
+                            html.Hr(className='form-hr')] + volume_dropdowns if len(
             volume_dropdowns) != 0 else volume_dropdowns
 
         form = dbc.Form(children=value_dropdowns + volume_dropdowns + [dbc.Row(
@@ -237,7 +248,7 @@ class ProductLaunch(FormalTemplateInterface):
         self.current_layout = None
         self.clean_data.attrs['columns_dict'] = self.columns_dict
         layout = [dbc.Row(dbc.Alert(html.H4('Your data is ready !'), color="success")), dbc.Row(
-            dbc.Button("Next",className="mr-auto outlined", href='/dashboard', id='next_step',
+            dbc.Button("Next", className="mr-auto outlined", href='/dashboard', id='next_step',
                        n_clicks=0), className="d-grid gap-2 col-3 mx-auto")]
         return 'ask_user', layout
 
@@ -258,16 +269,17 @@ class ProductLaunch(FormalTemplateInterface):
         for level in ['Country level', 'Family level', 'Molecule level', 'Brand level']:
             if self.clean_data.attrs['columns_dict'][level] is not None:
                 tabs_content.append(dbc.Tab(
-                    dbc.Container(children=self.get_tab[level](self), fluid=True,className='p-1',style={'background-color': 'rgb(234,236,242)', })
-                                    ,label=level,labelClassName="tab_text",tabClassName='tab_btn'))
+                    dbc.Container(children=self.get_tab[level](self), fluid=True, className='product-launch-container',
+                                  style={'background-color': 'rgb(234,236,242)', })
+                    , label=level, labelClassName="p-0' tab_text", tabClassName='p-0 tab_btn', className='p-0'))
 
-
-
-
-        tabs= dbc.Tabs(
-                tabs_content
+        tabs = dbc.Tabs(
+            tabs_content,
+            className='p-0'
         )
-        dashboard = dbc.Container([dbc.Row(html.H3(self.name,className='ml-3 header_text')),dbc.Row(tabs)], className='p-0  mt-2', fluid=True)
+        dashboard = dbc.Container(
+            [dbc.Row(html.H3(self.name, className='ml-3 header_text product-launch-title'), className='g-0'),
+             dbc.Row(tabs, className='g-0')], className='p-0  mt-2', fluid=True)
         return dashboard
 
     def render_layout(self):
@@ -293,178 +305,733 @@ class ProductLaunch(FormalTemplateInterface):
                                       len(self.clean_data.attrs['columns_dict']['Sales value'])) or not (
                                       len(self.clean_data.attrs['columns_dict']['Sales volume'])) else False)
         dropdown_country = dbc.DropdownMenu(
+            toggleClassName='drowpdowns-filter',
 
             label='Country',
-            menu_variant="dark",
+            menu_variant="light",
             children=[
-                dbc.DropdownMenuItem(dbc.Button([html.I(className="bi bi-check2-square"),'(Select All)'], id='select_all_country', style={'width':'100%'}),toggle=False,),
-                dbc.DropdownMenuItem(dbc.Button([html.I(className="bi bi-funnel"),'(Clear All)'], id='clear_all_country', style={'width':'100%'}),toggle=False,),
-                dbc.DropdownMenuItem(divider=True,toggle=False,),
+                dbc.DropdownMenuItem(
+                    dbc.Button([html.I(className="bi bi-check2-square"), '(Select All)'], id='select_all_country',
+                               style={'width': '100%'}, className='outlined'), toggle=False, className='dropdown-item'),
+                dbc.DropdownMenuItem(
+                    dbc.Button([html.I(className="bi bi-funnel"), '(Clear All)'], id='clear_all_country',
+                               style={'width': '100%'}, className='outlined'), toggle=False, className='dropdown-item'),
+                dbc.DropdownMenuItem(divider=True, toggle=False, ),
 
                 dbc.Checklist(
+                    input_checked_class_name='checked_box',
                     options=[{"label": country, "value": country} for country in countries],
                     value=countries,
                     id="country_checklist",
-                    class_name='p-1 "bi bi-file-earmark-arrow-down"'
+                    class_name='p-1 dropdowlist'
                 )
             ], class_name='m-0 p-0')
         dropdown_range = dbc.DropdownMenu(
+            toggleClassName='drowpdowns-filter',
             label='Timeline',
-            menu_variant="dark",
+            menu_variant="light",
             children=[
                 dbc.Checklist(
+                    input_checked_class_name='checked_box',
                     options=[{"label": column, "value": index} for index, column in enumerate(S_columns)],
                     value=list(range(len(S_columns))),
-                    id="range_checklist",
-                    class_name='p-1 "bi bi-file-earmark-arrow-down"'
+                    id={'index': 'range_checklist', 'level': 'Country level'},
+                    class_name='p-1 dropdowlist'
                 )
             ], class_name='m-0 p-0')
 
-        tab_filters = dbc.Row(
+        tab_filters = dbc.Row(dbc.Col(
             [
-                dbc.Col(html.H6('Value'), className="mr-auto", width='auto'),
-                dbc.Col(switch, className="mr-auto", width='auto'),
-                dbc.Col(html.H6('Volume'), className="mr-auto", width='auto'),
-                dbc.Col(html.P("Select top: ", className='m-0 p-0 mr-1'), width='auto'),
-                dbc.Col(dbc.Input(type="number",
-                                  min=0, max=max_input, size='sm',
-                                  id={'index': 'top', 'level': 'country'},
-                                  value=5 if max_input > 5 else max_input, step=1), width='auto'),
 
-                dbc.Col(dbc.Label('Sales per:', html_for='per', width='auto')),
-                dbc.Col(
-                    dbc.Select(id='per', options=[{"label": i, "value": i} for i in columns], required='required',
-                               value=columns[0], ),
-                    width='auto'),
+                dbc.Row([dbc.Col(html.P('Filters', className='m-0 import_text'), style={'text-align': 'center'},
+                                 width='auto')], justify='center', align='center', className='pb-3'),
+                dbc.Row(dbc.Col(dropdown_country, width=8), justify='center', align='center', className='mb-2'),
+                dbc.Row(dbc.Col(dropdown_range, width=8), justify='center', align='center', className='mb-2'),
+                dbc.Row([dbc.Col(html.H6('Value'), className="mr-auto", width='auto'),
+                         dbc.Col(switch, className="mr-auto", width='auto'),
+                         dbc.Col(html.H6('Volume'), className="mr-auto", width='auto'), ], justify='center',
+                        align='center', className='mb-2'),
+                dbc.Row([
+                    dbc.Col(dbc.Label("Select top :", html_for={'index': 'top', 'level': 'country'}, width='auto'),
+                            width='auto'),
+                    dbc.Col(dbc.Input(type="number",
+                                      min=0, max=max_input,
+                                      id={'index': 'top', 'level': 'country'},
+                                      value=5 if max_input > 5 else max_input, step=1, className='selectpicker'),
+                            width='auto'), ], justify="between", align='center', className='mb-2'),
+                dbc.Row([
+                    dbc.Col(dbc.Label('Sales per :', html_for='per', width='auto')),
+                    dbc.Col(
+                        dbc.Select(id='per', options=[{"label": i, "value": i} for i in columns], required='required',
+                                   value=columns[0], className='selectpicker'),
+                        width='auto')], justify="between", align='center'),
 
-                dbc.Col(dropdown_country, className="mr-auto", width='auto'),
-                dbc.Col(dropdown_range, className="mr-auto", width='auto'),
-            ], align="center", justify='end', className='mb-2')
+            ]), align="center", justify='end', className='mb-2')
 
         header_cards_2 = dbc.Row([
             dbc.Col([
                 dbc.Row([
                     dbc.Col(dbc.Card([
-                        dbc.CardHeader([dbc.Row(html.H5(id='RS_country_header'))]),
-
-                        dbc.CardBody(
-                            [
-                                html.H5(id='RS_country', children="<-- the value generated by the call back-->",
-                                        className="card-title"),
-                            ]
-                        ),
-                    ], color="primary", outline=True), className='mb-2'),
-                    dbc.Col(dbc.Card([
-                        dbc.CardHeader([dbc.Row(html.H5(id='RG_country_header')),]),
-                        dbc.CardBody(
-                            [
-                                html.H5(id='RG_country', children="<-- the value generated by the call back-->",
-                                        className="card-title"),
-                            ]
-                        ),
-                    ], color="primary", outline=True), className='mb-2'), ]),
-                dbc.Row(
-                    dbc.Col(dbc.Card([
                         dbc.CardHeader(dbc.Row(
-                            dbc.Col(html.H5(id='line_country_header', children='<Sales>', className='p-0 m-0'),
-                                    width='auto'), align='center', justify='center')),
-                        dbc.CardBody(
-                            [
-                                dbc.Row(dbc.Col(dcc.Graph(id='line_country')), align='center', justify='center'),
-
-                            ], className='p-0'
-                        ),
-                    ], color="primary", outline=True), className='mb-2'), )
-                ,dbc.Row(
-                    dbc.Col(dbc.Card([
-                        dbc.CardHeader(dbc.Row(
-                            dbc.Col(html.H5(id='bubble_country_header', children='<Sales>', className='p-0 m-0'),
-                                    width='auto'), align='center', justify='center')),
-                        dbc.CardBody(
-                            [
-                                dbc.Row(dbc.Col(dcc.Graph(id='bubble_country')), align='center', justify='center'),
-
-                            ], className='p-0'
-                        ),
-                    ], color="primary", outline=True), className='mb-2'), )
-            ], width=6),
-
-            dbc.Col([
-                dbc.Row([
-                    dbc.Col(dbc.Card([
-                        dbc.CardHeader(dbc.Row(
-                            dbc.Col(html.H5(id='MS_country_header', children='<Market Size>', className='p-0 m-0'),
-                                    width='auto'), align='center', justify='center')),
+                            dbc.Col(html.H5(id='MS_country_header', children='<Market Size>',
+                                            className='p-0 m-0 card-header-text'),
+                                    width='auto'), align='center', justify='center'),
+                            className='product-launch-card-header'),
                         dbc.CardBody(
                             [
                                 dbc.Row(dbc.Col(
                                     html.H5(id='MS_country', children="<-- the value generated by the call back-->",
-                                            className='p-0 m-0'), width='auto'), align='center', justify='center')
-                            ]
+                                            className='p-0 m-0 card-value'), width='auto'), align='center',
+                                    justify='center')
+                            ],
                         ),
-                    ], color="primary", outline=True), className='mb-2'),
+                    ], className='product-launch-card'), className='mb-2'),
                     dbc.Col(dbc.Card([
                         dbc.CardHeader(
-                            dbc.Row(dbc.Col(html.H5(id='cagr_country_header', className='p-0 m-0'), width='auto'),
-                                    align='center', justify='center')),
+                            dbc.Row(dbc.Col(html.H5(id='cagr_country_header', className='p-0 m-0 card-header-text'),
+                                            width='auto'),
+                                    align='center', justify='center'), className='product-launch-card-header'),
                         dbc.CardBody(
                             [
                                 dbc.Row(
-                                    dbc.Col(html.H5(id='cagr_country',
-                                                    children="<-- the value generated by the call back-->",
-                                                    className='p-0 m-0'), width='auto'), align='center',
+                                    dbc.Col(id='cagr_country', width='auto'), align='center',
                                     justify='center')
-                            ]
+                            ],
                         ),
-                    ], color="primary", outline=True), className='mb-2')], ),
+                    ], className='product-launch-card'), className='mb-2')], ),
+                dbc.Row([
+                    dbc.Col(dbc.Card([
+                        dbc.CardHeader(
+                            [dbc.Row(html.H5(id='RS_country_header', className='card-header-text'), justify='center')],
+                            className='product-launch-card-header'),
+
+                        dbc.CardBody(
+                            [
+                                dbc.Row(dbc.Col(id='RS_country', children="<-- the value generated by the call back-->",
+                                                className="card-title"), justify='center', align='center'),
+                            ], className='product-launch-card-body'
+                        ),
+                    ], className='product-launch-card'), className='mb-2'),
+                    dbc.Col(dbc.Card([
+                        dbc.CardHeader([dbc.Row(html.H5(id='RG_country_header', className='card-header-text'),
+                                                justify='center'), ], className='product-launch-card-header'),
+                        dbc.CardBody(
+                            [
+                                dbc.Row(dbc.Col(id='RG_country', children="<-- the value generated by the call back-->",
+                                                className="card-title"), justify='center', align='center'),
+                            ], className='product-launch-card-body'
+                        ),
+                    ], className='product-launch-card'), className='mb-2'), ]),
                 dbc.Row(
                     dbc.Col(dbc.Card([
                         dbc.CardHeader(dbc.Row(
-                            dbc.Col(html.H5(id='pie_country_header', children='<Market Share>', className='p-0 m-0'),
-                                    width='auto'), align='center', justify='center')),
+                            dbc.Col(html.H5(id='line_country_header', children='<Sales>',
+                                            className='p-0 m-0 card-header-text'),
+                                    width='auto'), align='center', justify='center'),
+                            className='product-launch-card-header'),
                         dbc.CardBody(
                             [
-                                dbc.Row(dbc.Col(dcc.Graph(id='pie_country')), align='center', justify='center'),
+                                dbc.Row(dbc.Col(dcc.Graph(id='line_country')), align='center', justify='center'),
 
-                            ],
+                            ], className='p-0 product-launch-card-body'
                         ),
-                    ], color="primary", outline=True), className='mb-2'), ),
+                    ], className='product-launch-card'), className='mb-2'), )
+                , dbc.Row(
+                    dbc.Col(dbc.Card([
+                        dbc.CardHeader(dbc.Row(
+                            dbc.Col(html.H5(id='bubble_country_header', children='<Sales>',
+                                            className='p-0 m-0 card-header-text'),
+                                    width='auto'), align='center', justify='center'),
+                            className='product-launch-card-header'),
+                        dbc.CardBody(
+                            [
+                                dbc.Row(dbc.Col(dcc.Graph(id='bubble_country')), align='center', justify='center'),
+
+                            ], className='p-0 product-launch-card-body'
+                        ),
+                    ], className='product-launch-card'), className='mb-2'), )
+            ], width=6),
+
+            dbc.Col([
+                 dbc.Row(
+                   dbc.Col(dbc.Card([
+                        dbc.CardHeader(dbc.Row(
+                            dbc.Col(html.H5(children='Global market summary', className='p-0 m-0 card-header-text'),
+                                    width='auto'), align='center', justify='center'),
+                            className='product-launch-card-header'),
+                        dbc.CardBody(
+                            [
+                                dbc.Row(id='summary_country'),
+
+                            ], className='product-launch-card-body'
+                        ),
+                    ], className='product-launch-card'), className='mb-2 right-col')),
+
                 dbc.Row(
                     dbc.Col(dbc.Card([
                         dbc.CardHeader(dbc.Row(
-                            dbc.Col(html.H5(id='bar_country_header', children='<Sales>', className='p-0 m-0'),
-                                    width='auto'), align='center', justify='center')),
+                            dbc.Col(html.H5(id='pie_country_header', children='<Market Share>',
+                                            className='p-0 m-0 card-header-text'),
+                                    width='auto'), align='center', justify='center'),
+                            className='product-launch-card-header'),
                         dbc.CardBody(
                             [
-                                dbc.Row(dbc.Col(dcc.Graph(id='bar_country')), align='center', justify='center'),
+                                dbc.Row(dcc.Graph(id='pie_country'), align='center', justify='center'),
 
-                            ],
+                            ], className='product-launch-card-body'
                         ),
-                    ], color="primary", outline=True), className='mb-2'), ),
+                    ], className='product-launch-card'), className='mb-2 right-col'), ),
                 dbc.Row(
                     dbc.Col(dbc.Card([
                         dbc.CardHeader(dbc.Row(
-                            dbc.Col(html.H5(children='Country Scoring', className='p-0 m-0'),
-                                    width='auto'), align='center', justify='center')),
+                            dbc.Col(html.H5(id='bar_country_header', children='<Sales>',
+                                            className='p-0 m-0 card-header-text'),
+                                    width='auto'), align='center', justify='center'),
+                            className='product-launch-card-header'),
                         dbc.CardBody(
                             [
-                                dbc.Row(dbc.Col(id='scoring_country'), align='center', justify='center'),
+                                dbc.Row(dcc.Graph(id='bar_country'), align='center', justify='center'),
 
+                            ], className='product-launch-card-body'
+                        ),
+                    ], className='product-launch-card'), className='mb-2 right-col'), ),
+                #dbc.Row(
+                #   dbc.Col(dbc.Card([
+                #        dbc.CardHeader(dbc.Row(
+                #            dbc.Col(html.H5(children='Country Scoring', className='p-0 m-0 card-header-text'),
+                #                    width='auto'), align='center', justify='center'),
+                #            className='product-launch-card-header'),
+                #        dbc.CardBody(
+                #            [
+                #                dbc.Row(id='scoring_country'),
+                #
+                #            ], className='product-launch-card-body'
+                #        ),
+                #    ], className='product-launch-card'), className='mb-2 right-col'))
+            ], width=6)])
+        return [dbc.Row(
+            [dbc.Col(html.Div(tab_filters, className='side_bar'), className='side_col'), dbc.Col(header_cards_2)],
+            className="g-0")]
+
+    def get_family_tab(self):
+        columns = []
+        for level in ['Family level', 'Molecule level', 'Brand level']:
+            if self.clean_data.attrs['columns_dict'][level] is not None:
+                columns.append(level)
+
+        # definig filters
+
+        families = list(self.clean_data[self.clean_data.attrs['columns_dict']['Family level']].unique())
+        max_input = len(families)
+        switch_vol_val = 'Sales value' if len(self.clean_data.attrs['columns_dict']['Sales value']) else 'Sales volume'
+        S_columns = self.clean_data.attrs['columns_dict'][switch_vol_val]
+
+        country_filter = None
+        if self.clean_data.attrs['columns_dict']['Country level'] is not None:
+            top_num = self.country_scores[self.clean_data.attrs['columns_dict']['Country level']].unique().shape[0]
+            top_num = 5 if top_num > 5 else top_num
+            top_countries = list(self.country_scores[self.clean_data.attrs['columns_dict']['Country level']][
+                                 :top_num])
+            self.scoring_family_view(top_countries)
+            country_filter = dbc.Row([
+                dbc.Col(
+                    dbc.Label('Country :', html_for={'type': 'family_checklist', 'level': 'country'}, width='auto')),
+                dbc.Col(
+                    dbc.Select(id={'type': 'family_checklist', 'level': 'country'},
+                               options=[{"label": i, "value": i} for i in top_countries], required='required',
+                               value=top_countries[0], className='selectpicker'),
+                    width=8)], justify="between", align='center', className='mb-2')
+            families = list(self.clean_data[self.clean_data[self.clean_data.attrs['columns_dict']['Country level']] ==
+                                            top_countries[0]][
+                                self.clean_data.attrs['columns_dict']['Family level']].unique())
+            max_input = len(families)
+        else:
+            self.scoring_family_view()
+            country_filter = dbc.Row([
+                dbc.Col(
+                    dbc.Label('Country :', html_for={'type': 'family_checklist', 'level': 'country'}, width='auto')),
+                dbc.Col(
+                    dbc.Select(id={'type': 'family_checklist', 'level': 'country'}, required='required',
+                               value=None, className='selectpicker', disabled=True),
+                    width='auto')], justify="between", align='center', className='mb-2')
+
+        switch = daq.ToggleSwitch(id={'index': 'sales_toggle', 'level': 'Family level'},
+                                  value=False if len(
+                                      self.clean_data.attrs['columns_dict']['Sales value']) else True,
+                                  disabled=True if not (
+                                      len(self.clean_data.attrs['columns_dict']['Sales value'])) or not (
+                                      len(self.clean_data.attrs['columns_dict']['Sales volume'])) else False)
+        dropdown_family = dbc.DropdownMenu(
+            toggleClassName='drowpdowns-filter',
+            label='Family',
+            menu_variant="light",
+            children=[
+                dbc.DropdownMenuItem(
+                    dbc.Button([html.I(className="bi bi-check2-square"), '(Select All)'], id='select_all_family',
+                               style={'width': '100%'}, className='outlined'), toggle=False, className='dropdown-item'),
+                dbc.DropdownMenuItem(
+                    dbc.Button([html.I(className="bi bi-funnel"), '(Clear All)'], id='clear_all_family',
+                               style={'width': '100%'}, className='outlined'), toggle=False, className='dropdown-item'),
+                dbc.DropdownMenuItem(divider=True, toggle=False, ),
+
+                dbc.Checklist(
+                    input_checked_class_name='checked_box',
+                    options=[{"label": family, "value": family} for family in families],
+                    value=families,
+                    id={'type': 'family_checklist', 'level': 'family'},
+                    class_name='p-1 dropdowlist'
+                )
+            ], class_name='m-0 p-0')
+
+        dropdown_range = dbc.DropdownMenu(
+            toggleClassName='drowpdowns-filter',
+            label='Timeline',
+            menu_variant="light",
+            children=[
+                dbc.Checklist(
+                    input_checked_class_name='checked_box',
+                    options=[{"label": column, "value": index} for index, column in enumerate(S_columns)],
+                    value=list(range(len(S_columns))),
+                    id={'index': 'range_checklist', 'level': 'Family level'},
+                    class_name='p-1 dropdowlist'
+                )
+            ], class_name='m-0 p-0')
+
+        filters_components = [
+
+            dbc.Row([dbc.Col(html.P('Filters', className='m-0 import_text'), style={'text-align': 'center'},
+                             width='auto')], justify='center', align='center', className='pb-3'),
+            dbc.Row(dbc.Col(dropdown_family, width=8), justify='center', align='center', className='mb-2'),
+            dbc.Row(dbc.Col(dropdown_range, width=8), justify='center', align='center', className='mb-2'),
+            dbc.Row([dbc.Col(html.H6('Value'), className="mr-auto", width='auto'),
+                     dbc.Col(switch, className="mr-auto", width='auto'),
+                     dbc.Col(html.H6('Volume'), className="mr-auto", width='auto'), ], justify='center',
+                    align='center', className='mb-2'),
+            country_filter,
+            dbc.Row([
+                dbc.Col(dbc.Label("Select top :", html_for={'index': 'top', 'level': 'country'}, width='auto'),
+                        width='auto'),
+                dbc.Col(dbc.Input(type="number",
+                                  min=0, max=max_input,
+                                  id={'index': 'top', 'level': 'family'},
+                                  value=5 if max_input > 5 else max_input, step=1, className='selectpicker'),
+                        width='auto'), ], justify="between", align='center', className='mb-2'),
+
+        ]
+
+        tab_filters = dbc.Row(dbc.Col(filters_components), align="center", justify='end', className='mb-2')
+
+        header_cards_2 = dbc.Row([
+            dbc.Col([
+                dbc.Row([
+                    dbc.Col(dbc.Card([
+                        dbc.CardHeader(dbc.Row(
+                            dbc.Col(html.H5(id='MS_family_header', children='<Market Size>',
+                                            className='p-0 m-0 card-header-text'),
+                                    width='auto'), align='center', justify='center'),
+                            className='product-launch-card-header'),
+                        dbc.CardBody(
+                            [
+                                dbc.Row(dbc.Col(
+                                    html.H5(id='MS_family', children="<-- the value generated by the call back-->",
+                                            className='p-0 m-0 card-value'), width='auto'), align='center',
+                                    justify='center')
                             ],
                         ),
-                    ], color="primary", outline=True), className='mb-2')
+                    ], className='product-launch-card'), className='mb-2'),
+                    dbc.Col(dbc.Card([
+                        dbc.CardHeader(
+                            dbc.Row(dbc.Col(html.H5(id='cagr_family_header', className='p-0 m-0 card-header-text'),
+                                            width='auto'),
+                                    align='center', justify='center'), className='product-launch-card-header'),
+                        dbc.CardBody(
+                            [
+                                dbc.Row(
+                                    dbc.Col(id='cagr_family', width='auto'), align='center',
+                                    justify='center')
+                            ],
+                        ),
+                    ], className='product-launch-card'), className='mb-2')], ),
+                dbc.Row([
+                    dbc.Col(dbc.Card([
+                        dbc.CardHeader(
+                            [dbc.Row(html.H5(id='RS_family_header', className='card-header-text'), justify='center')],
+                            className='product-launch-card-header'),
 
+                        dbc.CardBody(
+                            [
+                                dbc.Row(dbc.Col(id='RS_family', children="<-- the value generated by the call back-->",
+                                                className="card-title"), justify='center', align='center'),
+                            ], className='product-launch-card-body'
+                        ),
+                    ], className='product-launch-card'), className='mb-2'),
+                    dbc.Col(dbc.Card([
+                        dbc.CardHeader([dbc.Row(html.H5(id='RG_family_header', className='card-header-text'),
+                                                justify='center'), ], className='product-launch-card-header'),
+                        dbc.CardBody(
+                            [
+                                dbc.Row(dbc.Col(id='RG_family', children="<-- the value generated by the call back-->",
+                                                className="card-title"), justify='center', align='center'),
+                            ], className='product-launch-card-body'
+                        ),
+                    ], className='product-launch-card'), className='mb-2'), ]),
+                dbc.Row(
+                    dbc.Col(dbc.Card([
+                        dbc.CardHeader(dbc.Row(
+                            dbc.Col(html.H5(id='line_family_header', children='<Sales>',
+                                            className='p-0 m-0 card-header-text'),
+                                    width='auto'), align='center', justify='center'),
+                            className='product-launch-card-header'),
+                        dbc.CardBody(
+                            [
+                                dbc.Row(dbc.Col(dcc.Graph(id='line_family')), align='center', justify='center'),
+
+                            ], className='p-0 product-launch-card-body'
+                        ),
+                    ], className='product-launch-card'), className='mb-2'), )
+                , dbc.Row(
+                    dbc.Col(dbc.Card([
+                        dbc.CardHeader(dbc.Row(
+                            dbc.Col(html.H5(id='bubble_family_header', children='<Sales>',
+                                            className='p-0 m-0 card-header-text'),
+                                    width='auto'), align='center', justify='center'),
+                            className='product-launch-card-header'),
+                        dbc.CardBody(
+                            [
+                                dbc.Row(dbc.Col(dcc.Graph(id='bubble_family')), align='center', justify='center'),
+
+                            ], className='p-0 product-launch-card-body'
+                        ),
+                    ], className='product-launch-card'), className='mb-2'), )
+            ], width=6),
+
+            dbc.Col([
+
+                dbc.Row(
+                    dbc.Col(dbc.Card([
+                        dbc.CardHeader(dbc.Row(
+                            dbc.Col(html.H5(id='pie_family_header', children='<Market Share>',
+                                            className='p-0 m-0 card-header-text'),
+                                    width='auto'), align='center', justify='center'),
+                            className='product-launch-card-header'),
+                        dbc.CardBody(
+                            [
+                                dbc.Row(dcc.Graph(id='pie_family'), align='center', justify='center'),
+
+                            ], className='product-launch-card-body'
+                        ),
+                    ], className='product-launch-card'), className='mb-2 right-col'), ),
+                dbc.Row(
+                    dbc.Col(dbc.Card([
+                        dbc.CardHeader(dbc.Row(
+                            dbc.Col(html.H5(id='bar_family_header', children='<Sales>',
+                                            className='p-0 m-0 card-header-text'),
+                                    width='auto'), align='center', justify='center'),
+                            className='product-launch-card-header'),
+                        dbc.CardBody(
+                            [
+                                dbc.Row(dcc.Graph(id='bar_family'), align='center', justify='center'),
+
+                            ], className='product-launch-card-body'
+                        ),
+                    ], className='product-launch-card'), className='mb-2 right-col'), ),
+                dbc.Row(
+                    dbc.Col(dbc.Card([
+                        dbc.CardHeader(dbc.Row(
+                            dbc.Col(html.H5(children='Family Scoring', className='p-0 m-0 card-header-text'),
+                                    width='auto'), align='center', justify='center'),
+                            className='product-launch-card-header'),
+                        dbc.CardBody(
+                            [
+                                dbc.Row(id='scoring_family'),
+
+                            ], className='product-launch-card-body'
+                        ),
+                    ], className='product-launch-card'), className='mb-2 right-col')
 
                 )
             ], width=6)])
-        return [tab_filters,header_cards_2]
-
-    def get_family_tab(self):
-
-        return []
+        return [dbc.Row(
+            [dbc.Col(html.Div(tab_filters, className='side_bar'), className='side_col'), dbc.Col(header_cards_2)],
+            className="g-0")]
 
     def get_molecule_tab(self):
-        return []
+
+
+        columns = []
+        for level in ['Family level', 'Molecule level', 'Brand level']:
+            if self.clean_data.attrs['columns_dict'][level] is not None:
+                columns.append(level)
+
+        # definig filtershgre
+        #switch
+        switch_vol_val = 'Sales value' if len(self.clean_data.attrs['columns_dict']['Sales value']) else 'Sales volume'
+        switch = daq.ToggleSwitch(id={'index': 'sales_toggle', 'level': 'Molecule level'},
+                                  value=False if switch_vol_val == 'Sales value' else True,
+                                  disabled=True if not (
+                                      len(self.clean_data.attrs['columns_dict']['Sales value'])) or not (
+                                      len(self.clean_data.attrs['columns_dict']['Sales volume'])) else False)
+
+        switch_row = dbc.Row([dbc.Col(html.H6('Value'), className="mr-auto", width='auto'),
+                     dbc.Col(switch, className="mr-auto", width='auto'),
+                     dbc.Col(html.H6('Volume'), className="mr-auto", width='auto'), ], justify='center',
+                    align='center', className='mb-2')
+        # time line
+        S_columns = self.clean_data.attrs['columns_dict'][switch_vol_val]
+
+        dropdown_range = dbc.DropdownMenu(
+            toggleClassName='drowpdowns-filter',
+            label='Timeline',
+            menu_variant="light",
+            children=[
+                dbc.Checklist(
+                    input_checked_class_name='checked_box',
+                    options=[{"label": column, "value": index} for index, column in enumerate(S_columns)],
+                    value=list(range(len(S_columns))),
+                    id={'index': 'range_checklist', 'level': 'Molecule level'},
+                    class_name='p-1 dropdowlist'
+                )
+            ], class_name='m-0 p-0')
+
+        dropdown_range_row = dbc.Row(dbc.Col(dropdown_range, width=8), justify='center', align='center', className='mb-2')
+        df = self.clean_data
+        country_row = None
+        family_row = None
+        c_column = self.clean_data.attrs['columns_dict']['Country level']
+        f_column = self.clean_data.attrs['columns_dict']['Family level']
+        family_score = self.family_scores
+        if c_column is not None:
+            top_num = self.country_scores[self.clean_data.attrs['columns_dict']['Country level']].unique().shape[0]
+            top_num = 5 if top_num > 5 else top_num
+            top_countries = list(self.country_scores[self.clean_data.attrs['columns_dict']['Country level']][
+                                 :top_num])
+            df = df[df[c_column] == top_countries[0]]
+            family_score = family_score[family_score[c_column]==top_countries[0]]
+            country_row = dbc.Row([
+                dbc.Col(
+                    dbc.Label('Country :', html_for={'type': 'molecule_checklist', 'level': 'country'}, width='auto')),
+                dbc.Col(
+                    dbc.Select(id={'type': 'molecule_checklist', 'level': 'country'},
+                               options=[{"label": i, "value": i} for i in top_countries], required='required',
+                               value=top_countries[0], className='selectpicker'),
+                    width=8)], justify="between", align='center', className='mb-2')
+        else:
+            country_row = dbc.Row([
+                dbc.Col(
+                    dbc.Label('Country :', html_for={'type': 'molecule_checklist', 'level': 'country'}, width='auto')),
+                dbc.Col(
+                    dbc.Select(id={'type': 'molecule_checklist', 'level': 'country'}, required='required',
+                               value=None, className='selectpicker', disabled=True),
+                    width='auto')], justify="between", align='center', className='mb-2')
+
+        if f_column is not None:
+            top_num = family_score[f_column].unique().shape[0]
+
+            top_num = 5 if top_num > 5 else top_num
+            top_families = list(family_score[f_column][:top_num])
+            df = df[df[f_column] == top_families[0]]
+            family_row = dbc.Row([
+                dbc.Col(
+                    dbc.Label('Family :', html_for={'type': 'molecule_checklist', 'level': 'family'}, width='auto')),
+                dbc.Col(
+                    dbc.Select(id={'type': 'molecule_checklist', 'level': 'family'},
+                               options=[{"label": i, "value": i} for i in top_families], required='required',
+                               value=top_families[0], className='selectpicker'),
+                    width=8)], justify="between", align='center', className='mb-2')
+        else:
+            family_row = dbc.Row([
+                dbc.Col(
+                    dbc.Label('Family :', html_for={'type': 'molecule_checklist', 'level': 'family'}, width='auto')),
+                dbc.Col(
+                    dbc.Select(id={'type': 'molecule_checklist', 'level': 'family'}, required='required',
+                               value=None, className='selectpicker', disabled=True),
+                    width='auto')], justify="between", align='center', className='mb-2')
+
+        molecules = list(df[df.attrs['columns_dict']['Molecule level']].unique())
+        max_input = len(molecules)
+        dropdown_molecule = dbc.DropdownMenu(
+            toggleClassName='drowpdowns-filter',
+            label='Molecule',
+            menu_variant="light",
+            children=[
+                dbc.DropdownMenuItem(
+                    dbc.Button(children=[html.I(className="bi bi-check2-square"), '(Select All)'], id='select_all_molecule',
+                               style={'width': '100%'}, className='outlined'), toggle=False, className='dropdown-item'),
+                dbc.DropdownMenuItem(
+                    dbc.Button([html.I(className="bi bi-funnel"), '(Clear All)'], id='clear_all_molecule',
+                               style={'width': '100%'}, className='outlined'), toggle=False, className='dropdown-item'),
+                dbc.DropdownMenuItem(divider=True, toggle=False, ),
+
+
+                dbc.Checklist(
+                    input_checked_class_name='checked_box',
+                    options=[{"label": molecule, "value": molecule} for molecule in molecules],
+                    value=molecules,
+                    id={'type': 'molecule_checklist', 'level': 'molecule'},
+                    class_name='p-1 dropdowlist'
+                )
+            ], class_name='m-0 p-0')
+
+        dropdown_molecule_row= dbc.Row(dbc.Col(dropdown_molecule, width=8), justify='center', align='center', className='mb-2')
+
+
+
+        filters_components = [
+
+            dbc.Row([dbc.Col(html.P('Filters', className='m-0 import_text'), style={'text-align': 'center'},
+                             width='auto')], justify='center', align='center', className='pb-3'),
+            dropdown_molecule_row,
+            dropdown_range_row,
+            switch_row,
+            country_row,
+            family_row,
+            dbc.Row([
+                dbc.Col(dbc.Label("Select top :", html_for={'index': 'top', 'level': 'molecule'}, width='auto'),
+                        width='auto'),
+                dbc.Col(dbc.Input(type="number",
+                                  min=0, max=max_input,
+                                  id={'index': 'top', 'level': 'molecule'},
+                                  value=5 if max_input > 5 else max_input, step=1, className='selectpicker'),
+                        width='auto'), ], justify="between", align='center', className='mb-2'),
+
+        ]
+
+        tab_filters = dbc.Row(dbc.Col(filters_components), align="center", justify='end', className='mb-2')
+
+        header_cards_2 = dbc.Row([
+            dbc.Col([
+                dbc.Row([
+                    dbc.Col(dbc.Card([
+                        dbc.CardHeader(dbc.Row(
+                            dbc.Col(html.H5(id='MS_molecule_header', children='<Market Size>',
+                                            className='p-0 m-0 card-header-text'),
+                                    width='auto'), align='center', justify='center'),
+                            className='product-launch-card-header'),
+                        dbc.CardBody(
+                            [
+                                dbc.Row(dbc.Col(
+                                    html.H5(id='MS_molecule', children="<-- the value generated by the call back-->",
+                                            className='p-0 m-0 card-value'), width='auto'), align='center',
+                                    justify='center')
+                            ],
+                        ),
+                    ], className='product-launch-card'), className='mb-2'),
+                    dbc.Col(dbc.Card([
+                        dbc.CardHeader(
+                            dbc.Row(dbc.Col(html.H5(id='cagr_molecule_header', className='p-0 m-0 card-header-text'),
+                                            width='auto'),
+                                    align='center', justify='center'), className='product-launch-card-header'),
+                        dbc.CardBody(
+                            [
+                                dbc.Row(
+                                    dbc.Col(id='cagr_molecule', width='auto'), align='center',
+                                    justify='center')
+                            ],
+                        ),
+                    ], className='product-launch-card'), className='mb-2')], ),
+                dbc.Row([
+                    dbc.Col(dbc.Card([
+                        dbc.CardHeader(
+                            [dbc.Row(html.H5(id='RS_molecule_header', className='card-header-text'), justify='center')],
+                            className='product-launch-card-header'),
+
+                        dbc.CardBody(
+                            [
+                                dbc.Row(dbc.Col(id='RS_molecule', children="<-- the value generated by the call back-->",
+                                                className="card-title"), justify='center', align='center'),
+                            ], className='product-launch-card-body'
+                        ),
+                    ], className='product-launch-card'), className='mb-2'),
+                    dbc.Col(dbc.Card([
+                        dbc.CardHeader([dbc.Row(html.H5(id='RG_molecule_header', className='card-header-text'),
+                                                justify='center'), ], className='product-launch-card-header'),
+                        dbc.CardBody(
+                            [
+                                dbc.Row(dbc.Col(id='RG_molecule', children="<-- the value generated by the call back-->",
+                                                className="card-title"), justify='center', align='center'),
+                            ], className='product-launch-card-body'
+                        ),
+                    ], className='product-launch-card'), className='mb-2'), ]),
+                dbc.Row(
+                    dbc.Col(dbc.Card([
+                        dbc.CardHeader(dbc.Row(
+                            dbc.Col(html.H5(id='line_molecule_header', children='<Sales>',
+                                            className='p-0 m-0 card-header-text'),
+                                    width='auto'), align='center', justify='center'),
+                            className='product-launch-card-header'),
+                        dbc.CardBody(
+                            [
+                                dbc.Row(dbc.Col(dcc.Graph(id='line_molecule')), align='center', justify='center'),
+
+                            ], className='p-0 product-launch-card-body'
+                        ),
+                    ], className='product-launch-card'), className='mb-2'), )
+                , dbc.Row(
+                    dbc.Col(dbc.Card([
+                        dbc.CardHeader(dbc.Row(
+                            dbc.Col(html.H5(id='bubble_molecule_header', children='<Sales>',
+                                            className='p-0 m-0 card-header-text'),
+                                    width='auto'), align='center', justify='center'),
+                            className='product-launch-card-header'),
+                        dbc.CardBody(
+                            [
+                                dbc.Row(dbc.Col(dcc.Graph(id='bubble_molecule')), align='center', justify='center'),
+
+                            ], className='p-0 product-launch-card-body'
+                        ),
+                    ], className='product-launch-card'), className='mb-2'), )
+            ], width=6),
+
+            dbc.Col([
+
+                dbc.Row(
+                    dbc.Col(dbc.Card([
+                        dbc.CardHeader(dbc.Row(
+                            dbc.Col(html.H5(id='pie_molecule_header', children='<Market Share>',
+                                            className='p-0 m-0 card-header-text'),
+                                    width='auto'), align='center', justify='center'),
+                            className='product-launch-card-header'),
+                        dbc.CardBody(
+                            [
+                                dbc.Row(dcc.Graph(id='pie_molecule'), align='center', justify='center'),
+
+                            ], className='product-launch-card-body'
+                        ),
+                    ], className='product-launch-card'), className='mb-2 right-col'), ),
+                dbc.Row(
+                    dbc.Col(dbc.Card([
+                        dbc.CardHeader(dbc.Row(
+                            dbc.Col(html.H5(id='bar_molecule_header', children='<Sales>',
+                                            className='p-0 m-0 card-header-text'),
+                                    width='auto'), align='center', justify='center'),
+                            className='product-launch-card-header'),
+                        dbc.CardBody(
+                            [
+                                dbc.Row(dcc.Graph(id='bar_molecule'), align='center', justify='center'),
+
+                            ], className='product-launch-card-body'
+                        ),
+                    ], className='product-launch-card'), className='mb-2 right-col'), ),
+                dbc.Row(
+                    dbc.Col(dbc.Card([
+                        dbc.CardHeader(dbc.Row(
+                            dbc.Col(html.H5(children='Family Scoring', className='p-0 m-0 card-header-text'),
+                                    width='auto'), align='center', justify='center'),
+                            className='product-launch-card-header'),
+                        dbc.CardBody(
+                            [
+                                dbc.Row(id='scoring_molecule'),
+
+                            ], className='product-launch-card-body'
+                        ),
+                    ], className='product-launch-card'), className='mb-2 right-col')
+
+                )
+            ], width=6)])
+        return [dbc.Row(
+            [dbc.Col(html.Div(tab_filters, className='side_bar'), className='side_col'), dbc.Col(header_cards_2)],
+            className="g-0")]
+
 
     def get_brand_tab(self):
         return []
@@ -474,37 +1041,91 @@ class ProductLaunch(FormalTemplateInterface):
         df = self.clean_data
         vol_columns = self.clean_data.attrs['columns_dict']['Sales volume']
         val_columns = self.clean_data.attrs['columns_dict']['Sales value']
-        df = df[vol_columns+val_columns+[c_column]]
+        df = df[vol_columns + val_columns + [c_column]]
         df = df.groupby(by=[c_column]).sum().reset_index(level=[c_column])
         scoring_columns = []
         if len(vol_columns):
             df['Market size volume'] = df[vol_columns].sum(1)
             scoring_columns.append('Market size volume')
-            df['Market share volume'] = df['Market size volume']/df['Market size volume'].sum()
+            df['Market share volume'] = df['Market size volume'] / df['Market size volume'].sum()
             scoring_columns.append('Market share volume')
             if len(vol_columns) > 1:
-                df['Growth in Volume'] = growth(data=df, begin=vol_columns[0], final=vol_columns[-1]).values
-                scoring_columns.append('Growth in Volume')
-            if len(vol_columns)>2:
-                df['CAGR in volume'] = cagr(data=df, begin=vol_columns[0], final=vol_columns[-1],t = len(vol_columns)-1).values
+                df['Growth in volume'] = growth(data=df, begin=vol_columns[0], final=vol_columns[-1]).values
+                scoring_columns.append('Growth in volume')
+            if len(vol_columns) > 2:
+                df['CAGR in volume'] = cagr(data=df, begin=vol_columns[0], final=vol_columns[-1],
+                                            t=len(vol_columns) - 1).values
                 scoring_columns.append('CAGR in volume')
         if len(val_columns):
-            df['Market size value']=df[val_columns].sum(1)
+            df['Market size value'] = df[val_columns].sum(1)
             scoring_columns.append('Market size value')
             df['Market share value'] = df['Market size value'] / df['Market size value'].sum()
             scoring_columns.append('Market share value')
             if len(val_columns) > 1:
                 df['Growth in value'] = growth(data=df, begin=val_columns[0], final=val_columns[-1]).values
                 scoring_columns.append('Growth in value')
-            if len(val_columns)>2:
+            if len(val_columns) > 2:
                 df['CAGR in value'] = cagr(data=df, begin=val_columns[0], final=val_columns[-1],
-                                      t=len(val_columns) - 1).values
+                                           t=len(val_columns) - 1).values
                 scoring_columns.append('CAGR in value')
-        df['Score'] =StandardScaler().fit_transform(df[scoring_columns]).sum(axis=1)
+        df['Score'] = StandardScaler().fit_transform(df[scoring_columns]).sum(axis=1)
         df.sort_values('Score', ascending=False, inplace=True)
-        self.country_scores = df[[c_column]+scoring_columns+['Score']]
+        self.country_scores = df[[c_column] + scoring_columns + ['Score']]
 
-        self.country_scores.attrs['columns'] = {'Country level':c_column,
-                                                'Score Column':scoring_columns}
+        self.country_scores.attrs['columns'] = {'Country level': c_column,
+                                                'Score Column': scoring_columns}
 
+    def scoring_family_view(self,countries=None):
+        level_columns = [self.clean_data.attrs['columns_dict']['Family level']]
+        if self.clean_data.attrs['columns_dict']['Country level'] is not None:
+            level_columns = [self.clean_data.attrs['columns_dict']['Country level']] + level_columns
 
+        df = self.clean_data
+        if countries:
+            df = df[df[df.attrs['columns_dict']['Country level']].isin(countries)]
+        vol_columns = self.clean_data.attrs['columns_dict']['Sales volume']
+        val_columns = self.clean_data.attrs['columns_dict']['Sales value']
+        df = df[vol_columns + val_columns + level_columns]
+        df = df.groupby(by=level_columns).sum()
+
+        scoring_columns = []
+        if len(vol_columns):
+            df['Market size volume'] = df[vol_columns].sum(1)
+            scoring_columns.append('Market size volume')
+            df['Market share volume'] = df['Market size volume'].div(df['Market size volume'].groupby(level=0).sum(),
+                                                                     level=0)
+
+            scoring_columns.append('Market share volume')
+            if len(vol_columns) > 1:
+                df['Growth in volume'] = growth(data=df, begin=vol_columns[0], final=vol_columns[-1]).values
+                scoring_columns.append('Growth in volume')
+            if len(vol_columns) > 2:
+                df['CAGR in volume'] = cagr(data=df, begin=vol_columns[0], final=vol_columns[-1],
+                                            t=len(vol_columns) - 1).values
+                scoring_columns.append('CAGR in volume')
+
+        if len(val_columns):
+            df['Market size value'] = df[val_columns].sum(1)
+            scoring_columns.append('Market size value')
+            df['Market share value'] = df['Market size value'].div(df['Market size value'].groupby(level=0).sum(),
+                                                                     level=0)
+            scoring_columns.append('Market share value')
+
+            if len(val_columns) > 1:
+                df['Growth in value'] = growth(data=df, begin=val_columns[0], final=val_columns[-1]).values
+                scoring_columns.append('Growth in value')
+            if len(val_columns) > 2:
+                df['CAGR in value'] = cagr(data=df, begin=val_columns[0], final=val_columns[-1],
+                                           t=len(val_columns) - 1).values
+                scoring_columns.append('CAGR in value')
+        df=df.reset_index(level=level_columns)
+        df['Score'] = StandardScaler().fit_transform(df[scoring_columns]).sum(axis=1)
+        df.sort_values('Score', ascending=False, inplace=True)
+        self.family_scores = df[level_columns + scoring_columns + ['Score']]
+        level=['Country','Family']
+
+        self.family_scores.attrs['columns'] = {'levels': {level[-i]:level_columns[-i] for i in range(1,len(level_columns)+1)},
+                                                'Score Column': scoring_columns}
+
+    def scoring_molecule_view(self):
+        return []
